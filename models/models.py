@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, text
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy import create_engine, Column, Integer, String, Float, ForeignKey, text
+from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 Base = declarative_base()
 
@@ -87,7 +87,8 @@ class CompletedCourse(Base):
     student = relationship("User", back_populates="completed_courses")
     course = relationship("Course")
 
-    DATABASE_URL = "sqlite:///hms_database.db"
+
+DATABASE_URL = "sqlite:///hms_database.db"
 engine = create_engine(DATABASE_URL, echo=False)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -96,5 +97,5 @@ def create_database():
     Base.metadata.create_all(bind=engine)
     print("Đã khởi tạo thành công CSDL: hms_database.db bằng SQLAlchemy")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     create_database()
