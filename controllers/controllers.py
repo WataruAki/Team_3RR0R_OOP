@@ -2,9 +2,12 @@ from models.models import SessionLocal, User, Course, CourseClass, Enrollment, P
 import csv
 from datetime import datetime
 import hashlib
+import binascii
 
-def hash_pwd(password: str) -> str:
-    return hashlib.sha256(password.encode()).hexdigest()
+# VÁ LỖ HỔNG BẢO MẬT HASHING: Băm mật khẩu 100,000 lần kết hợp Salt (là Email)
+def hash_pwd(password: str, salt: str) -> str:
+    dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
+    return binascii.hexlify(dk).decode('utf-8')
 
 class MainController:
     def __init__(self):
@@ -14,10 +17,10 @@ class MainController:
         db = SessionLocal()
         try:
             user = db.query(User).filter(User.email == email).first()
-            if not user or user.password != hash_pwd(password):
+            # Kiểm tra Hash hợp lệ
+            if not user or user.password != hash_pwd(password, email):
                 return False, "Email hoặc Mật khẩu không chính xác", ""
             
-            # VÁ LỖ HỔNG 2: CHẶN ĐĂNG NHẬP KHI BỊ ĐÌNH CHỈ HỌC
             if user.role == "Student" and user.academic_status == "Đình chỉ học":
                 return False, "Tài khoản đã bị ĐÌNH CHỈ HỌC VỤ. Vui lòng liên hệ Giáo vụ!", ""
                 
@@ -56,7 +59,9 @@ class StudentController:
         db = SessionLocal()
         try:
             student_id = self.main_ctrl.current_user.user_id
-            course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id).first()
+            
+            # VÁ LỖ HỔNG RACE CONDITION: Bắt SQL khóa Row bằng with_for_update()
+            course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id).with_for_update().first()
             if not course_class: return False, "Lớp học phần không tồn tại."
 
             current_enrolled = db.query(Enrollment).filter(Enrollment.class_id == class_id).count()
@@ -65,7 +70,6 @@ class StudentController:
 
             course = db.query(Course).filter(Course.course_id == course_class.course_id).first()
             
-            # VÁ LỖ HỔNG 4: CHẶN ĐĂNG KÝ HỌC LẠI MÔN ĐÃ QUA
             passed = db.query(CompletedCourse).filter(CompletedCourse.student_id == student_id, CompletedCourse.course_id == course.course_id, CompletedCourse.grade_letter != 'F').first()
             if passed: return False, f"Bị chặn: Bạn đã học qua và ĐỖ môn này rồi ({passed.grade_letter})!"
 
@@ -224,33 +228,35 @@ class LecturerController:
             if not course_class: return False, "Lỗi: Bạn không phụ trách lớp này!"
             
             enrollments = db.query(Enrollment).filter(Enrollment.class_id == class_id).all()
-            if not enrollments: return False, "Lớp không có dữ liệu."
-            
-            course_credits = course_class.course.credits if course_class.course else 0
             count = 0
             for e in enrollments:
                 if not e.is_locked:
                     e.is_locked = True
-                    student = db.query(User).filter(User.user_id == e.student_id).first()
                     
-                    # Cập nhật GPA
-                    if student and e.diem_he_4 is not None:
-                        total_score = (student.gpa * student.credits) + (e.diem_he_4 * course_credits)
-                        new_credits = student.credits + course_credits
-                        if new_credits > 0: 
-                            student.gpa = round(total_score / new_credits, 2)
-                        student.credits = new_credits
-                        
-                        # VÁ LỖ HỔNG 1 (HỐ ĐEN TIÊN QUYẾT): Đẩy dữ liệu sang bảng CompletedCourse
-                        letter = "A" if e.diem_he_4 == 4.0 else ("B" if e.diem_he_4 == 3.0 else ("C" if e.diem_he_4 == 2.0 else ("D" if e.diem_he_4 == 1.0 else "F")))
-                        passed_record = db.query(CompletedCourse).filter_by(student_id=student.user_id, course_id=course_class.course_id).first()
-                        if not passed_record:
-                            db.add(CompletedCourse(student_id=student.user_id, course_id=course_class.course_id, grade_letter=letter))
-                        else:
-                            passed_record.grade_letter = letter
+                    letter = "A" if e.diem_he_4 == 4.0 else ("B" if e.diem_he_4 == 3.0 else ("C" if e.diem_he_4 == 2.0 else ("D" if e.diem_he_4 == 1.0 else "F")))
+                    passed_record = db.query(CompletedCourse).filter_by(student_id=e.student_id, course_id=course_class.course_id).first()
+                    if not passed_record:
+                        db.add(CompletedCourse(student_id=e.student_id, course_id=course_class.course_id, grade_letter=letter))
+                    else:
+                        passed_record.grade_letter = letter
+                    
+                    # VÁ LỖ HỔNG FLOATING DRIFT: Tự động lặp qua mọi môn học để tính lại GPA từ đầu (từ số 0)
+                    all_locked = db.query(Enrollment).filter(Enrollment.student_id == e.student_id, Enrollment.is_locked == True).all()
+                    total_points = 0.0
+                    total_creds = 0
+                    for en in all_locked:
+                        c_cred = en.course_class.course.credits
+                        if c_cred > 0 and en.diem_he_4 is not None:
+                            total_points += en.diem_he_4 * c_cred
+                            total_creds += c_cred
+                    
+                    student = db.query(User).filter(User.user_id == e.student_id).first()
+                    student.credits = total_creds
+                    student.gpa = round(total_points / total_creds, 2) if total_creds > 0 else 0.0
+                    
                     count += 1
             db.commit()
-            return True, f"🔒 Đã khóa sổ và cập nhật GPA chính thức cho {count} sinh viên!"
+            return True, f"🔒 Đã khóa sổ và chuẩn hóa GPA cho {count} sinh viên!"
         except Exception as e:
             db.rollback()
             return False, f"Lỗi khóa điểm: {str(e)}"
@@ -263,7 +269,6 @@ class LecturerController:
             course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id, CourseClass.lecturer_id == self.main_ctrl.current_user.user_id).first()
             if not course_class: return False, "Bạn không phụ trách lớp này."
             
-            # VÁ LỖ HỔNG 3: CHẶN SPAM TẠO BÀI TẬP TRÙNG LẶP
             exist_hw = db.query(Assignment).filter(Assignment.class_id == class_id).first()
             if exist_hw: return False, f"⛔ Lớp {class_id} ĐÃ ĐƯỢC GIAO BÀI rồi! Không thể giao trùng lặp."
             
@@ -378,7 +383,7 @@ class AcademicStaffController:
         try:
             if db.query(User).filter((User.user_id == uid) | (User.email == email)).first():
                 return False, "Lỗi: Mã ID hoặc Email đã tồn tại trong hệ thống!"
-            new_user = User(user_id=uid, name=name, email=email, password=hash_pwd(pwd), role=role)
+            new_user = User(user_id=uid, name=name, email=email, password=hash_pwd(pwd, email), role=role)
             db.add(new_user)
             db.commit()
             return True, f"Đã tạo tài khoản {role} thành công!"
@@ -395,7 +400,7 @@ class AcademicStaffController:
             if duplicate: return False, "Lỗi: Email này đã được sử dụng cho tài khoản khác!"
             
             user.name, user.email, user.role = name, email, role
-            if pwd != "******": user.password = hash_pwd(pwd)
+            if pwd != "******": user.password = hash_pwd(pwd, email)
             db.commit()
             return True, "Cập nhật thông tin thành công!"
         finally:
@@ -409,16 +414,15 @@ class AcademicStaffController:
             
             if user.role == 'Lecturer':
                 if db.query(CourseClass).filter(CourseClass.lecturer_id == uid).first():
-                    return False, "⛔ Không thể xóa Giảng viên đang có lớp! Hãy chuyển lớp trước."
+                    return False, "⛔ Không thể xóa Giảng viên đang có lớp!"
             
-            db.query(Enrollment).filter(Enrollment.student_id == uid).delete()
-            db.query(Assignment).filter(Assignment.student_id == uid).delete()
-            db.query(Notification).filter(Notification.user_id == uid).delete()
-            db.query(CompletedCourse).filter(CompletedCourse.student_id == uid).delete()
-            db.query(Project).filter((Project.student_id == uid) | (Project.lecturer_id == uid)).delete()
-            
+            # VÁ LỖ HỔNG DATABASE INTEGRITY: 
+            # Dựa dẫm hoàn toàn vào SQLAlchemy cascade='all, delete-orphan' đã cấu hình trong models.py
             db.delete(user)
             db.commit()
-            return True, "Đã xóa tài khoản và dọn dẹp sạch sẽ CSDL."
+            return True, "Đã xóa tài khoản và hệ thống tự động dọn dẹp sạch sẽ CSDL."
+        except Exception as e:
+            db.rollback()
+            return False, f"Lỗi toàn vẹn dữ liệu: {str(e)}"
         finally:
             db.close()

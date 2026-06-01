@@ -17,8 +17,9 @@ class User(Base):
     attendance_rate = Column(Float, server_default=text('1.0'))
     academic_status = Column(String, server_default=text("'Bình thường'"))
 
-    enrollments = relationship("Enrollment", back_populates="student")
-    completed_courses = relationship("CompletedCourse", back_populates="student")
+    # VÁ LỖ HỔNG DATABASE INTEGRITY: Cấu hình Xóa dây chuyền tự động (Cascade Delete)
+    enrollments = relationship("Enrollment", back_populates="student", cascade="all, delete-orphan")
+    completed_courses = relationship("CompletedCourse", back_populates="student", cascade="all, delete-orphan")
 
 class Course(Base):
     __tablename__ = 'courses'
