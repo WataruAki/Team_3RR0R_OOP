@@ -8,20 +8,19 @@ def seed_mock_data():
         if db.query(User).first():
             return
 
-        print("[SEED] Đang khởi tạo dữ liệu mẫu (Mật khẩu đã mã hóa)...")
+        print("[SEED] Đang khởi tạo dữ liệu mẫu (Mật khẩu đã mã hóa an toàn)...")
 
-        safe_pass = hash_pwd("123")
-        
-        staff = User(user_id="1", name="Trần Thị Giáo Vụ", email="giaovu@vnu.edu.vn", password=safe_pass, role="Staff")
-        lecturer = User(user_id="2", name="Nguyễn Văn Giảng Viên", email="giangvien@vnu.edu.vn", password=safe_pass, role="Lecturer")
+        # Khởi tạo từng User, truyền trực tiếp Email của họ vào làm tham số thứ 2 (Salt) cho hàm hash_pwd
+        staff = User(user_id="1", name="Trần Thị Giáo Vụ", email="giaovu@vnu.edu.vn", password=hash_pwd("123", "giaovu@vnu.edu.vn"), role="Staff")
+        lecturer = User(user_id="2", name="Nguyễn Văn Giảng Viên", email="giangvien@vnu.edu.vn", password=hash_pwd("123", "giangvien@vnu.edu.vn"), role="Lecturer")
         db.add_all([staff, lecturer])
         db.commit()
 
-        sv1 = User(user_id="3", name="Hoàng Việt Anh", email="anhhv@vnu.edu.vn", password=safe_pass, role="Student", gpa=3.8, rls=90, credits=21, attendance_rate=1.0)
-        sv2 = User(user_id="4", name="Lê Văn Thái An", email="anlv@vnu.edu.vn", password=safe_pass, role="Student", gpa=3.5, rls=85, credits=18, attendance_rate=0.95)
-        sv3 = User(user_id="5", name="Nguyễn Vũ Hương Ly", email="lynv@vnu.edu.vn", password=safe_pass, role="Student", gpa=2.9, rls=75, credits=15, attendance_rate=0.85)
-        sv4 = User(user_id="6", name="Hoàng Phương Đông Hòa", email="hoahpd@vnu.edu.vn", password=safe_pass, role="Student", gpa=3.1, rls=82, credits=19, attendance_rate=0.9)
-        sv_fail = User(user_id="7", name="Nguyễn Cá Biệt", email="cabiet@vnu.edu.vn", password=safe_pass, role="Student", gpa=2.2, rls=50, credits=12, attendance_rate=0.7)
+        sv1 = User(user_id="3", name="Hoàng Việt Anh", email="anhhv@vnu.edu.vn", password=hash_pwd("123", "anhhv@vnu.edu.vn"), role="Student", gpa=3.8, rls=90, credits=21, attendance_rate=1.0)
+        sv2 = User(user_id="4", name="Lê Văn Thái An", email="anlv@vnu.edu.vn", password=hash_pwd("123", "anlv@vnu.edu.vn"), role="Student", gpa=3.5, rls=85, credits=18, attendance_rate=0.95)
+        sv3 = User(user_id="5", name="Nguyễn Vũ Hương Ly", email="lynv@vnu.edu.vn", password=hash_pwd("123", "lynv@vnu.edu.vn"), role="Student", gpa=2.9, rls=75, credits=15, attendance_rate=0.85)
+        sv4 = User(user_id="6", name="Hoàng Phương Đông Hòa", email="hoahpd@vnu.edu.vn", password=hash_pwd("123", "hoahpd@vnu.edu.vn"), role="Student", gpa=3.1, rls=82, credits=19, attendance_rate=0.9)
+        sv_fail = User(user_id="7", name="Nguyễn Cá Biệt", email="cabiet@vnu.edu.vn", password=hash_pwd("123", "cabiet@vnu.edu.vn"), role="Student", gpa=2.2, rls=50, credits=12, attendance_rate=0.7)
         db.add_all([sv1, sv2, sv3, sv4, sv_fail])
         db.commit()
 
