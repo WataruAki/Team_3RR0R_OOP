@@ -19,7 +19,7 @@ class ASWindow:
 
         Label(self.db_frame, text="Giáo vụ", font=("Segoe UI", 16, "bold"), bg="white").pack(pady=20)
         
-        Button(self.db_frame, text="Quản lý Tài khoản", bg="#e6ccff", font=("Segoe UI", 11, "bold"), command=self.show_crud).pack(fill="x", pady=5)
+        Button(self.db_frame, text="Quản lý Hệ thống", bg="#e6ccff", font=("Segoe UI", 11, "bold"), command=self.show_crud).pack(fill="x", pady=5)
         Button(self.db_frame, text="Xét học bổng", font=("Segoe UI", 11), command=self.show_scholarship).pack(fill="x", pady=5)
         Button(self.db_frame, text="Thống kê GPA", font=("Segoe UI", 11), command=self.show_statistics).pack(fill="x", pady=5)
         Button(self.db_frame, text="Quản lý Học vụ", bg="#ffcccc", font=("Segoe UI", 11), command=self.show_management).pack(fill="x", pady=5)
@@ -28,15 +28,15 @@ class ASWindow:
         self.main_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
         # ==========================================
-        # 1. FRAME CRUD TÀI KHOẢN (Tính năng mới)
+        # 1. FRAME CRUD TÀI KHOẢN & HỌC PHẦN
         # ==========================================
         self.frame_crud = Frame(self.main_frame, bg="#f4f6f9")
-        Label(self.frame_crud, text="Quản lý Tài khoản Hệ thống", font=("Segoe UI", 18, "bold"), bg="#f4f6f9").pack(anchor="w", pady=10)
+        Label(self.frame_crud, text="Quản lý Hệ thống (Tài khoản & Học phần)", font=("Segoe UI", 18, "bold"), bg="#f4f6f9").pack(anchor="w", pady=10)
         
         form_frame = Frame(self.frame_crud, bg="white", bd=1, relief="solid", padx=15, pady=15)
         form_frame.pack(fill="x", pady=5)
         
-        Label(form_frame, text="Mã ID:", bg="white").grid(row=0, column=0, sticky="w", pady=5)
+        Label(form_frame, text="Mã ID (MSSV/MSGV):", bg="white").grid(row=0, column=0, sticky="w", pady=5)
         self.entry_uid = Entry(form_frame, width=20)
         self.entry_uid.grid(row=0, column=1, padx=10)
         
@@ -48,7 +48,7 @@ class ASWindow:
         self.entry_email = Entry(form_frame, width=20)
         self.entry_email.grid(row=1, column=1, padx=10)
 
-        Label(form_frame, text="Mật khẩu:", bg="white").grid(row=1, column=2, sticky="w", pady=5)
+        Label(form_frame, text="Mật khẩu (8 ký tự):", bg="white").grid(row=1, column=2, sticky="w", pady=5)
         self.entry_pwd = Entry(form_frame, width=30)
         self.entry_pwd.grid(row=1, column=3, padx=10)
 
@@ -64,22 +64,74 @@ class ASWindow:
         Button(btn_frame, text="Sửa (Update)", bg="#007bff", fg="white", command=self.update_user).pack(side="left", padx=5)
         Button(btn_frame, text="Xóa (Delete)", bg="#dc3545", fg="white", command=self.delete_user).pack(side="left", padx=5)
 
-        cols_crud = ('uid', 'name', 'email', 'role')
-        self.tree_crud = ttk.Treeview(self.frame_crud, columns=cols_crud, show='headings', height=10)
-        self.tree_crud.heading('uid', text='Mã ID')
-        self.tree_crud.heading('name', text='Họ và Tên')
-        self.tree_crud.heading('email', text='Email')
-        self.tree_crud.heading('role', text='Phân quyền')
-        self.tree_crud.column('uid', width=100, anchor='center')
-        self.tree_crud.column('role', width=100, anchor='center')
-        self.tree_crud.pack(fill="both", expand=True, pady=10)
-        self.tree_crud.bind("<ButtonRelease-1>", self.select_user)
+        # KHU VỰC NOTEBOOK (CHIA 4 TAB)
+        self.notebook = ttk.Notebook(self.frame_crud)
+        self.notebook.pack(fill="both", expand=True, pady=10)
+
+        self.tab_sv = Frame(self.notebook, bg="white")
+        self.tab_gv = Frame(self.notebook, bg="white")
+        self.tab_ad = Frame(self.notebook, bg="white")
+        self.tab_hp = Frame(self.notebook, bg="white")
+
+        self.notebook.add(self.tab_sv, text="👨‍🎓 Danh sách Sinh viên")
+        self.notebook.add(self.tab_gv, text="👨‍🏫 Danh sách Giảng viên")
+        self.notebook.add(self.tab_ad, text="📋 Danh sách Giáo vụ")
+        self.notebook.add(self.tab_hp, text="📚 Quản lý Học phần")
+
+        # TREEVIEW SINH VIÊN (BỎ CỘT STT)
+        self.tree_sv = ttk.Treeview(self.tab_sv, columns=('uid', 'name', 'email'), show='headings', height=8)
+        self.tree_sv.heading('uid', text='MSSV')
+        self.tree_sv.heading('name', text='Họ và Tên')
+        self.tree_sv.heading('email', text='Email')
+        self.tree_sv.column('uid', width=120, anchor='center')
+        self.tree_sv.pack(fill="both", expand=True, pady=5, padx=5)
+        self.tree_sv.bind("<ButtonRelease-1>", self.select_user)
+
+        # TREEVIEW GIẢNG VIÊN (BỎ CỘT STT)
+        self.tree_gv = ttk.Treeview(self.tab_gv, columns=('uid', 'name', 'email'), show='headings', height=8)
+        self.tree_gv.heading('uid', text='MSGV')
+        self.tree_gv.heading('name', text='Họ và Tên')
+        self.tree_gv.heading('email', text='Email')
+        self.tree_gv.column('uid', width=120, anchor='center')
+        self.tree_gv.pack(fill="both", expand=True, pady=5, padx=5)
+        self.tree_gv.bind("<ButtonRelease-1>", self.select_user)
+
+        # TREEVIEW GIÁO VỤ (GIỮ CỘT STT VÌ MÃ NV LÀ SỐ NGẮN)
+        self.tree_ad = ttk.Treeview(self.tab_ad, columns=('stt', 'uid', 'name', 'email'), show='headings', height=8)
+        self.tree_ad.heading('stt', text='STT')
+        self.tree_ad.heading('uid', text='Mã NV')
+        self.tree_ad.heading('name', text='Họ và Tên')
+        self.tree_ad.heading('email', text='Email')
+        self.tree_ad.column('stt', width=50, anchor='center')
+        self.tree_ad.column('uid', width=120, anchor='center')
+        self.tree_ad.pack(fill="both", expand=True, pady=5, padx=5)
+        self.tree_ad.bind("<ButtonRelease-1>", self.select_user)
+
+        # TREEVIEW HỌC PHẦN (CÓ THÊM THANH CÔNG CỤ)
+        hp_tool_frame = Frame(self.tab_hp, bg="white")
+        hp_tool_frame.pack(fill="x", pady=5, padx=5)
+        
+        Button(hp_tool_frame, text="➕ Thêm Học phần mới", bg="#28a745", fg="white", font=("Segoe UI", 10, "bold"), command=self.open_add_course_popup).pack(side="left", padx=5)
+        Button(hp_tool_frame, text="❌ Xóa Học phần đang chọn", bg="#dc3545", fg="white", font=("Segoe UI", 10, "bold"), command=self.delete_course_ui).pack(side="left", padx=5)
+        Button(hp_tool_frame, text="➖ Xóa 1 Lớp học phần", bg="#ffc107", font=("Segoe UI", 10, "bold"), command=self.delete_class_ui).pack(side="left", padx=5)
+
+        self.tree_hp = ttk.Treeview(self.tab_hp, columns=('stt', 'cid', 'name', 'creds', 'classes'), show='headings', height=8)
+        
+        self.tree_hp = ttk.Treeview(self.tab_hp, columns=('stt', 'cid', 'name', 'creds', 'classes'), show='headings', height=8)
+        self.tree_hp.heading('stt', text='STT')
+        self.tree_hp.heading('cid', text='Mã Học phần')
+        self.tree_hp.heading('name', text='Tên môn học')
+        self.tree_hp.heading('creds', text='Tín chỉ')
+        self.tree_hp.heading('classes', text='Các Lớp đang mở')
+        self.tree_hp.column('stt', width=50, anchor='center')
+        self.tree_hp.column('cid', width=120, anchor='center')
+        self.tree_hp.column('creds', width=80, anchor='center')
+        self.tree_hp.pack(fill="both", expand=True, pady=5, padx=5)
 
         # ==========================================
         # CÁC FRAME CŨ (Giữ nguyên)
         # ==========================================
         self.frame_scholarship = Frame(self.main_frame, bg="#f4f6f9")
-        # [Giữ nguyên nội dung Frame Xét Học Bổng...]
         Label(self.frame_scholarship, text="Xét Duyệt Học Bổng", font=("Segoe UI", 18, "bold"), bg="#f4f6f9").pack(anchor="w", pady=10)
         frame_input = Frame(self.frame_scholarship, bg="#f4f6f9")
         frame_input.pack(anchor="w", pady=10)
@@ -94,7 +146,6 @@ class ASWindow:
         self.tree_hb.pack(fill="both", expand=True, pady=10)
 
         self.frame_statistics = Frame(self.main_frame, bg="#f4f6f9")
-        # [Giữ nguyên nội dung Frame Thống kê...]
         Label(self.frame_statistics, text="Thống kê GPA", font=("Segoe UI", 18, "bold"), bg="#f4f6f9").pack(anchor="w", pady=10)
         Button(self.frame_statistics, text="Tải dữ liệu", font=("Segoe UI", 10), command=self.load_data).pack(anchor="w", pady=5)
         self.content_frame = Frame(self.frame_statistics, bg="#f4f6f9")
@@ -107,7 +158,6 @@ class ASWindow:
         self.chart_frame.pack(side="left", fill="both", expand=True)
 
         self.frame_management = Frame(self.main_frame, bg="#f4f6f9")
-        # [Giữ nguyên nội dung Frame Quản lý Học vụ...]
         Label(self.frame_management, text="Quản lý Cảnh cáo & Xuất Báo Cáo", font=("Segoe UI", 18, "bold"), bg="#f4f6f9").pack(anchor="w", pady=10)
         tool_frame = Frame(self.frame_management, bg="#f4f6f9")
         tool_frame.pack(fill="x", pady=5)
@@ -153,24 +203,61 @@ class ASWindow:
         self.frame_management.pack(fill="both", expand=True)
 
     # ==========================================
-    # LOGIC CRUD TÀI KHOẢN
+    # LOGIC CRUD & NẠP 4 BẢNG
     # ==========================================
     def load_users(self):
-        for row in self.tree_crud.get_children(): self.tree_crud.delete(row)
+        # Làm sạch 4 bảng trước khi nạp
+        for tree in [self.tree_sv, self.tree_gv, self.tree_ad, self.tree_hp]:
+            for row in tree.get_children(): tree.delete(row)
+            
         users = self.staff_ctr.get_all_users()
-        for u in users: self.tree_crud.insert('', 'end', values=(u['uid'], u['name'], u['email'], u['role']))
+        count_ad = 1
+        
+        for u in users:
+            if u['role'] == 'Student':
+                # Bảng SV không còn STT
+                self.tree_sv.insert('', 'end', values=(u['uid'], u['name'], u['email']))
+            elif u['role'] == 'Lecturer':
+                # Bảng GV không còn STT
+                self.tree_gv.insert('', 'end', values=(u['uid'], u['name'], u['email']))
+            elif u['role'] == 'Staff':
+                # Bảng Giáo vụ vẫn giữ STT
+                self.tree_ad.insert('', 'end', values=(count_ad, u['uid'], u['name'], u['email']))
+                count_ad += 1
+                
+        try:
+            courses = self.staff_ctr.get_all_courses()
+            for idx, c in enumerate(courses, 1):
+                self.tree_hp.insert('', 'end', values=(idx, c['id'], c['name'], c['credits'], c['classes']))
+        except AttributeError:
+            pass
 
     def select_user(self, event):
-        selected = self.tree_crud.selection()
+        current_tab = self.notebook.index(self.notebook.select())
+        if current_tab == 0: tree = self.tree_sv
+        elif current_tab == 1: tree = self.tree_gv
+        elif current_tab == 2: tree = self.tree_ad
+        else: return # Bỏ qua click nếu đang ở tab Học phần
+        
+        selected = tree.selection()
         if selected:
-            item = self.tree_crud.item(selected[0])['values']
+            item = tree.item(selected[0])['values']
             self.clear_form()
-            self.entry_uid.insert(0, item[0])
-            self.entry_name.insert(0, item[1])
-            self.entry_email.insert(0, item[2])
-            self.entry_pwd.insert(0, "******") # Ẩn pass
-            self.cmb_role.set(item[3])
-            self.entry_uid.config(state="disabled") # Không cho sửa ID
+            
+            # Logic tách biệt: Bảng SV & GV cột ID ở vị trí số 0 (do đã xóa STT)
+            # Bảng Giáo vụ cột ID ở vị trí số 1 (do vẫn còn STT)
+            if current_tab in [0, 1]:
+                self.entry_uid.insert(0, item[0])
+                self.entry_name.insert(0, item[1])
+                self.entry_email.insert(0, item[2])
+            else:
+                self.entry_uid.insert(0, item[1])
+                self.entry_name.insert(0, item[2])
+                self.entry_email.insert(0, item[3])
+                
+            self.entry_pwd.insert(0, "******") 
+            self.cmb_role.set(["Student", "Lecturer", "Staff"][current_tab])
+            self.entry_uid.config(state="disabled")
 
     def clear_form(self):
         self.entry_uid.config(state="normal")
@@ -210,7 +297,9 @@ class ASWindow:
                 self.clear_form()
             else: messagebox.showerror("Lỗi", msg)
 
-    # [GIỮ NGUYÊN CÁC HÀM XỬ LÝ CŨ: load_at_risk_students, change_status, export_excel, run_scholarship, load_data, draw_pie_chart...]
+    # ==========================================
+    # CÁC HÀM XỬ LÝ KHÁC (GIỮ NGUYÊN)
+    # ==========================================
     def load_at_risk_students(self):
         for row in self.tree_mng.get_children(): self.tree_mng.delete(row)
         students = self.staff_ctr.get_at_risk_students()
@@ -262,6 +351,86 @@ class ASWindow:
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True)
+    
+    def open_add_course_popup(self):
+        # Tạo cửa sổ con (Popup Modal)
+        popup = Toplevel(self.window)
+        popup.title("Thêm Học Phần Mới")
+        popup.geometry("450x380")
+        popup.configure(bg="white")
+        popup.grab_set() # Khóa tương tác với cửa sổ chính cho đến khi tắt popup
+        
+        Label(popup, text="TẠO MÔN HỌC MỚI", font=("Segoe UI", 14, "bold"), bg="white", fg="#007bff").pack(pady=15)
+        
+        Label(popup, text="Mã Học phần (VD: CSE101):", bg="white").pack(anchor="w", padx=30)
+        entry_cid = Entry(popup, font=("Segoe UI", 11))
+        entry_cid.pack(fill="x", padx=30, pady=(0, 10))
+        
+        Label(popup, text="Tên môn học:", bg="white").pack(anchor="w", padx=30)
+        entry_name = Entry(popup, font=("Segoe UI", 11))
+        entry_name.pack(fill="x", padx=30, pady=(0, 10))
+        
+        Label(popup, text="Số tín chỉ (Số nguyên):", bg="white").pack(anchor="w", padx=30)
+        entry_creds = Entry(popup, font=("Segoe UI", 11))
+        entry_creds.pack(fill="x", padx=30, pady=(0, 10))
+        
+        Label(popup, text="Môn tiên quyết (Nhập Mã môn, hoặc để trống):", bg="white").pack(anchor="w", padx=30)
+        entry_pre = Entry(popup, font=("Segoe UI", 11))
+        entry_pre.pack(fill="x", padx=30, pady=(0, 10))
+        
+        def submit():
+            cid, name, creds_str, pre = entry_cid.get(), entry_name.get(), entry_creds.get(), entry_pre.get()
+            
+            if not cid or not name or not creds_str:
+                messagebox.showwarning("Thiếu dữ liệu", "Vui lòng nhập Mã, Tên và Tín chỉ!", parent=popup)
+                return
+            try:
+                creds = int(creds_str)
+                if creds <= 0: raise ValueError
+            except ValueError:
+                messagebox.showwarning("Sai định dạng", "Tín chỉ phải là số nguyên dương!", parent=popup)
+                return
+                
+            success, msg = self.staff_ctr.create_course(cid, name, creds, pre)
+            if success:
+                messagebox.showinfo("Thành công", msg, parent=popup)
+                self.load_users() # Tự động load lại bảng ở cửa sổ chính
+                popup.destroy()   # Tự động đóng popup
+            else:
+                messagebox.showerror("Lỗi", msg, parent=popup)
+                
+        Button(popup, text="💾 Lưu vào CSDL", bg="#28a745", fg="white", font=("Segoe UI", 11, "bold"), command=submit).pack(pady=15)
+
+    def delete_course_ui(self):
+            selected = self.tree_hp.selection()
+            if not selected:
+                messagebox.showwarning("Chưa chọn", "Vui lòng click chọn 1 môn học trong bảng để xóa!")
+                return
+            
+            course_id = self.tree_hp.item(selected[0])['values'][1] # Lấy mã học phần ở cột index 1
+        
+        # Cảnh báo 2 lớp vì hành động này xóa diện rộng
+            if messagebox.askyesno("Cảnh báo Đỏ", f"Hành động này sẽ XÓA VĨNH VIỄN môn '{course_id}'.\nToàn bộ các Lớp đang mở, Bảng điểm và Bài tập của sinh viên môn này sẽ bốc hơi.\n\nBạn có chắc chắn không?"):
+                success, msg = self.staff_ctr.delete_course(course_id)
+            if success:
+                messagebox.showinfo("Thành công", msg)
+                self.load_users()
+            else:
+                messagebox.showerror("Lỗi", msg)
+
+    def delete_class_ui(self):
+            from tkinter import simpledialog
+        # Hiển thị ô nhập mã lớp cần xóa
+            class_id = simpledialog.askstring("Xóa Lớp học phần", "Nhập chính xác Mã Lớp học phần cần xóa (VD: CSE3011_C1):")
+        
+            if class_id:
+                if messagebox.askyesno("Xác nhận", f"Xóa lớp '{class_id}' sẽ làm mất toàn bộ điểm và danh sách đăng ký của lớp này.\nTiếp tục?"):
+                    success, msg = self.staff_ctr.delete_course_class(class_id.strip())
+                    if success:
+                        messagebox.showinfo("Thành công", msg)
+                    self.load_users()
+                else:
+                    messagebox.showerror("Lỗi", msg)
 
 if __name__ == "__main__":
     fake_ctrl = MainController()

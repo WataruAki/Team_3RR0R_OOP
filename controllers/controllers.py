@@ -373,12 +373,17 @@ class AcademicStaffController:
     def get_all_users(self) -> list:
         db = SessionLocal()
         try:
-            users = db.query(User).all()
+            # Gắn thêm .order_by(User.user_id.asc()) để SQL tự động xếp ID từ A-Z, từ bé đến lớn
+            users = db.query(User).order_by(User.user_id.asc()).all()
             return [{"uid": u.user_id, "name": u.name, "email": u.email, "role": u.role} for u in users]
         finally:
             db.close()
 
     def create_user(self, uid, name, email, pwd, role) -> tuple[bool, str]:
+        # VÁ RÀNG BUỘC: Mật khẩu chính xác 8 ký tự
+        if len(pwd) != 8:
+            return False, "Quy tắc nghiệp vụ: Mật khẩu phải có ĐÚNG 8 ký tự!"
+            
         db = SessionLocal()
         try:
             if db.query(User).filter((User.user_id == uid) | (User.email == email)).first():
@@ -391,6 +396,10 @@ class AcademicStaffController:
             db.close()
 
     def update_user(self, uid, name, email, pwd, role) -> tuple[bool, str]:
+        # VÁ RÀNG BUỘC: Nếu có sửa pass thì pass mới cũng phải đúng 8 ký tự
+        if pwd != "******" and len(pwd) != 8:
+            return False, "Quy tắc nghiệp vụ: Mật khẩu phải có ĐÚNG 8 ký tự!"
+            
         db = SessionLocal()
         try:
             user = db.query(User).filter(User.user_id == uid).first()
@@ -406,23 +415,77 @@ class AcademicStaffController:
         finally:
             db.close()
 
-    def delete_user(self, uid) -> tuple[bool, str]:
+    # TÍNH NĂNG MỚI: Lấy danh sách Học phần cho Bảng hiển thị
+    def get_all_courses(self) -> list:
         db = SessionLocal()
         try:
-            user = db.query(User).filter(User.user_id == uid).first()
-            if not user: return False, "Lỗi: Không tìm thấy tài khoản!"
+            # Gắn thêm .order_by() để danh sách Môn học cũng được xếp đẹp mắt theo Mã học phần
+            courses = db.query(Course).order_by(Course.course_id.asc()).all()
+            res = []
+            for c in courses:
+                classes = [cls.class_id for cls in c.classes]
+                class_str = ", ".join(classes) if classes else "Chưa mở lớp"
+                res.append({"id": c.course_id, "name": c.course_name, "credits": c.credits, "classes": class_str})
+            return res
+        finally:
+            db.close()
+    
+    def create_course(self, course_id: str, course_name: str, credits: int, prerequisite_id: str = None) -> tuple[bool, str]:
+        db = SessionLocal()
+        try:
+            # Kiểm tra xem mã học phần đã tồn tại chưa
+            if db.query(Course).filter(Course.course_id == course_id).first():
+                return False, "Lỗi: Mã học phần này đã tồn tại trên hệ thống!"
             
-            if user.role == 'Lecturer':
-                if db.query(CourseClass).filter(CourseClass.lecturer_id == uid).first():
-                    return False, "⛔ Không thể xóa Giảng viên đang có lớp!"
+            # Xử lý môn tiên quyết (Nếu để trống thì lưu là None)
+            prereq = prerequisite_id.strip() if prerequisite_id and prerequisite_id.strip() != "" else None
             
-            # VÁ LỖ HỔNG DATABASE INTEGRITY: 
-            # Dựa dẫm hoàn toàn vào SQLAlchemy cascade='all, delete-orphan' đã cấu hình trong models.py
-            db.delete(user)
+            # Nếu có nhập môn tiên quyết, phải kiểm tra xem môn đó có tồn tại ko
+            if prereq and not db.query(Course).filter(Course.course_id == prereq).first():
+                return False, f"Lỗi: Môn tiên quyết '{prereq}' không tồn tại!"
+            
+            new_course = Course(
+                course_id=course_id.strip(),
+                course_name=course_name.strip(),
+                credits=credits,
+                prerequisite_id=prereq
+            )
+            db.add(new_course)
             db.commit()
-            return True, "Đã xóa tài khoản và hệ thống tự động dọn dẹp sạch sẽ CSDL."
+            return True, f"Đã thêm môn học '{course_name}' thành công!"
         except Exception as e:
             db.rollback()
-            return False, f"Lỗi toàn vẹn dữ liệu: {str(e)}"
+            return False, f"Lỗi CSDL: {str(e)}"
+        finally:
+            db.close()
+    
+    def delete_course(self, course_id: str) -> tuple[bool, str]:
+        db = SessionLocal()
+        try:
+            course = db.query(Course).filter(Course.course_id == course_id).first()
+            if not course: return False, "Lỗi: Không tìm thấy học phần!"
+            
+            # CSDL sẽ tự động kích hoạt Cascade Delete dọn dẹp các bảng phụ
+            db.delete(course)
+            db.commit()
+            return True, f"Đã xóa vĩnh viễn Học phần '{course_id}' và toàn bộ dữ liệu liên quan!"
+        except Exception as e:
+            db.rollback()
+            return False, f"Lỗi CSDL: {str(e)}"
+        finally:
+            db.close()
+
+    def delete_course_class(self, class_id: str) -> tuple[bool, str]:
+        db = SessionLocal()
+        try:
+            course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id).first()
+            if not course_class: return False, "Lỗi: Không tìm thấy lớp học phần!"
+            
+            db.delete(course_class)
+            db.commit()
+            return True, f"Đã xóa Lớp '{class_id}' và danh sách đăng ký của sinh viên lớp này!"
+        except Exception as e:
+            db.rollback()
+            return False, f"Lỗi CSDL: {str(e)}"
         finally:
             db.close()
