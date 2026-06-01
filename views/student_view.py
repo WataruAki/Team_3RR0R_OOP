@@ -10,7 +10,6 @@ class StudentWindow:
         self.window.geometry("1000x650")
         self.window.title("BCSE - Sinh Viên")
 
-        # Sidebar 5 nút màu xanh lá cây đúng Use Case
         self.sidebar = Frame(self.window, width=200, bg="#eafaf1", bd=1, relief="solid")
         self.sidebar.pack(side="left", fill="y", padx=10, pady=10)
         self.sidebar.pack_propagate(False)
@@ -27,9 +26,7 @@ class StudentWindow:
         self.main_frame = Frame(self.window, bg="#f0f4f8")
         self.main_frame.pack(side="left", fill="both", expand=True, padx=10, pady=10)
 
-        # ==========================================
-        # 1. FRAME DASHBOARD & THÔNG BÁO
-        # ==========================================
+        # 1. DASHBOARD
         self.frame_dashboard = Frame(self.main_frame, bg="#f0f4f8")
         Label(self.frame_dashboard, text="Tổng quan & Thông báo học vụ", font=("Segoe UI", 18, "bold"), bg="#f0f4f8").pack(anchor="w", pady=10)
         
@@ -44,9 +41,7 @@ class StudentWindow:
         self.list_notis = Listbox(self.frame_dashboard, font=("Segoe UI", 11), fg="red", bg="white", height=10)
         self.list_notis.pack(fill="both", expand=True)
 
-        # ==========================================
-        # 2. FRAME NỘP BÀI TẬP
-        # ==========================================
+        # 2. BÀI TẬP
         self.frame_assignment = Frame(self.main_frame, bg="#f0f4f8")
         Label(self.frame_assignment, text="Nộp bài tập / Chấm điểm", font=("Segoe UI", 18, "bold"), bg="#f0f4f8").pack(anchor="w", pady=10)
         
@@ -61,12 +56,9 @@ class StudentWindow:
         self.tree_hw.column('status', width=150, anchor='center')
         self.tree_hw.column('time', width=200, anchor='center')
         self.tree_hw.pack(fill="both", pady=10)
-        
         Button(self.frame_assignment, text="📤 Nộp bài tập đã chọn", font=("Segoe UI", 11, "bold"), bg="#3498db", fg="white", command=self.submit_hw).pack(pady=5)
 
-        # ==========================================
-        # 3. FRAME ĐĂNG KÝ HỌC PHẦN
-        # ==========================================
+        # 3. ĐĂNG KÝ
         self.frame_register = Frame(self.main_frame, bg="#f0f4f8")
         Label(self.frame_register, text="Đăng ký học phần", font=("Segoe UI", 18, "bold"), bg="#f0f4f8").pack(anchor="w", pady=10)
         Label(self.frame_register, text="Mã lớp học phần:", font=("Segoe UI",12), bg="#f0f4f8").pack(pady=5)
@@ -74,12 +66,9 @@ class StudentWindow:
         self.entry_class_id.pack(pady=5)
         Button(self.frame_register, text="Gửi Đăng Ký", command=self.register, font=("Segoe UI",11)).pack(pady=10)
 
-        # ==========================================
-        # 4. FRAME TRA CỨU ĐIỂM
-        # ==========================================
+        # 4. TRA CỨU ĐIỂM
         self.frame_grades = Frame(self.main_frame, bg="#f0f4f8")
         Label(self.frame_grades, text="Tra cứu điểm, GPA, Lịch thi", font=("Segoe UI", 18, "bold"), bg="#f0f4f8").pack(anchor="w", pady=10)
-        
         self.lbl_scholarship = Label(self.frame_grades, text="", font=("Segoe UI", 12, "bold"), bg="#f0f4f8")
         self.lbl_scholarship.pack(anchor="w", pady=5)
 
@@ -94,9 +83,7 @@ class StudentWindow:
         for col in cols_gr: self.tree_gr.column(col, width=100, anchor='center')
         self.tree_gr.pack(fill="both", expand=True, pady=10)
 
-        # ==========================================
-        # 5. FRAME ĐIỂM DANH OTP
-        # ==========================================
+        # 5. ĐIỂM DANH OTP
         self.frame_attendance = Frame(self.main_frame, bg="#f0f4f8")
         Label(self.frame_attendance, text="Điểm danh OTP", font=("Segoe UI", 18, "bold"), bg="#f0f4f8").pack(anchor="w", pady=10)
         Label(self.frame_attendance, text="Mã lớp học phần:", font=("Segoe UI", 12), bg="#f0f4f8").pack(pady=5)
@@ -124,24 +111,20 @@ class StudentWindow:
         if info and "profile" in info:
             p = info["profile"]
             self.lbl_profile.config(text=f"👨‍🎓 Họ tên: {p['name']}  |  🆔 UID: {p['uid']}  |  📈 GPA: {p['gpa']}  |  📚 Tín chỉ: {p['credits']}")
-            if info["warning"]["is_warned"]:
-                self.lbl_warning.config(text=f"⚠️ {info['warning']['message']}", fg="red")
-            else:
-                self.lbl_warning.config(text=f"✅ {info['warning']['message']}", fg="green")
+            if info["warning"]["is_warned"]: self.lbl_warning.config(text=f"⚠️ {info['warning']['message']}", fg="red")
+            else: self.lbl_warning.config(text=f"✅ {info['warning']['message']}", fg="green")
         
         self.list_notis.delete(0, END)
         notis = self.student_ctr.get_notifications()
-        if not notis: 
-            self.list_notis.insert(END, "Không có thông báo nhắc nhở nào.")
-        for n in notis: 
-            self.list_notis.insert(END, f"📢 [{n['time']}] {n['msg']}")
+        if not notis: self.list_notis.insert(END, "Không có thông báo nhắc nhở nào.")
+        for n in notis: self.list_notis.insert(END, f"📢 [{n['time']}] {n['msg']}")
 
     def show_assignment(self):
         self.hide_all()
         self.frame_assignment.pack(fill="both", expand=True)
         for row in self.tree_hw.get_children(): self.tree_hw.delete(row)
-        hws = self.student_ctr.get_assignments()
-        for h in hws: self.tree_hw.insert('', 'end', values=(h['id'], h['class_id'], h['status'], h['time'] or "---"))
+        for h in self.student_ctr.get_assignments(): 
+            self.tree_hw.insert('', 'end', values=(h['id'], h['class_id'], h['status'], h['time'] or "---"))
 
     def show_register(self):
         self.hide_all()
@@ -151,17 +134,14 @@ class StudentWindow:
         self.hide_all()
         self.frame_grades.pack(fill="both", expand=True)
         for row in self.tree_gr.get_children(): self.tree_gr.delete(row)
-        grades = self.student_ctr.get_detailed_grades()
-        for g in grades: 
+        for g in self.student_ctr.get_detailed_grades(): 
             self.tree_gr.insert('', 'end', values=(g['class_id'], g['cc'], g['gk'], g['ck'], g['tong'] or "---", g['he4'] or "---"))
         
         info = self.student_ctr.get_dashboard_info()
         if info and "profile" in info:
             p = info["profile"]
-            if p['credits'] >= 18 and p['gpa'] >= 3.2:
-                self.lbl_scholarship.config(text="🎉 Đủ điều kiện xét duyệt học bổng kỳ này!", fg="#28a745")
-            else:
-                self.lbl_scholarship.config(text="❌ Chưa đủ điều kiện xét học bổng (Yêu cầu >= 18 tín chỉ và GPA Giỏi).", fg="red")
+            if p['credits'] >= 18 and p['gpa'] >= 3.2: self.lbl_scholarship.config(text="🎉 Đủ điều kiện xét duyệt học bổng kỳ này!", fg="#28a745")
+            else: self.lbl_scholarship.config(text="❌ Chưa đủ điều kiện xét học bổng.", fg="red")
 
     def show_attendance(self):
         self.hide_all()
@@ -177,8 +157,7 @@ class StudentWindow:
         if success:
             messagebox.showinfo("Thành công", msg)
             self.show_assignment()
-        else:
-            messagebox.showerror("Lỗi", msg)
+        else: messagebox.showerror("Lỗi", msg)
 
     def register(self):
         class_id = self.entry_class_id.get().strip()
@@ -187,8 +166,7 @@ class StudentWindow:
         else: messagebox.showerror("Bị chặn", msg)
 
     def handle_attendance(self):
-        class_id = self.entry_att_class.get().strip()
-        code = self.entry_att_code.get().strip()
+        class_id, code = self.entry_att_class.get().strip(), self.entry_att_code.get().strip()
         success, msg = self.student_ctr.check_in_attendance(class_id, code)
         if success: messagebox.showinfo("Thành công", msg)
         else: messagebox.showerror("Lỗi Điểm Danh", msg)

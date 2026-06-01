@@ -37,6 +37,7 @@ class CourseClass(Base):
     course_id = Column(String, ForeignKey('courses.course_id'), nullable=False)
     lecturer_id = Column(String, ForeignKey('users.user_id'), nullable=False)
     attendance_code = Column(String, nullable=True)
+    max_capacity = Column(Integer, server_default=text('40'))
 
     course = relationship("Course")
     lecturer = relationship("User")
@@ -52,6 +53,9 @@ class Enrollment(Base):
     diem_tong_ket = Column(Float, nullable=True) 
     diem_he_4 = Column(Float, nullable=True)     
     is_locked = Column(Boolean, server_default=text('0'))
+    
+    # VÁ LỖ HỔNG 1: Chống Spam Điểm danh
+    last_otp = Column(String, nullable=True)
 
     course_class = relationship("CourseClass")
     student = relationship("User", back_populates="enrollments")
@@ -104,7 +108,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def create_database():
     Base.metadata.create_all(bind=engine)
-    print("Đã khởi tạo thành công CSDL: hms_database.db bằng SQLAlchemy")
+    print("Đã khởi tạo CSDL: hms_database.db an toàn.")
 
 if __name__ == "__main__":
     create_database()
