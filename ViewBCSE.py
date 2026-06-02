@@ -1,60 +1,62 @@
 from tkinter import *
 from controllers.controllers import MainController
 
-window = Tk()
-window.title("BCSE - Dang Nhap")
+# Import 3 giao diện chính từ thư mục views
+from views.acs_view import ASWindow
+from views.lecturer_view import LecturerWindow
+from views.student_view import StudentWindow
 
-frame = Frame(window, bd=1, relief="solid", bg="white", padx=30, pady=40)
-frame.pack()
-frame.grid_columnconfigure(0, weight=1)
+class LoginWindow:
+    def __init__(self):
+        self.main_ctrl = MainController()
+        
+        self.window = Tk()
+        self.window.title("BCSE - Dang Nhap")
+        self.window.geometry("350x250")
+        self.window.eval('tk::PlaceWindow . center') # Căn giữa màn hình
+        
+        # --- UI ĐĂNG NHẬP ---
+        Label(self.window, text="Gmail", font=("Segoe UI", 10, "bold")).pack(anchor="w", padx=40, pady=(20, 0))
+        self.entry_email = Entry(self.window, font=("Segoe UI", 12))
+        self.entry_email.pack(fill="x", padx=40, pady=5)
+        
+        Label(self.window, text="Password", font=("Segoe UI", 10, "bold")).pack(anchor="w", padx=40)
+        self.entry_pwd = Entry(self.window, font=("Segoe UI", 12), show="*")
+        self.entry_pwd.pack(fill="x", padx=40, pady=5)
+        
+        Button(self.window, text="Sign in", font=("Segoe UI", 11, "bold"), bg="#e0e0e0", command=self.handle_login).pack(fill="x", padx=40, pady=15)
+        
+        # Nhãn báo lỗi (ẩn đi lúc đầu)
+        self.lbl_error = Label(self.window, text="", fg="red", font=("Segoe UI", 9))
+        self.lbl_error.pack()
+        
+        # 💡 THÊM TÍNH NĂNG BẤM ENTER ĐỂ ĐĂNG NHẬP
+        self.window.bind('<Return>', self.handle_login)
+        
+        self.window.mainloop()
 
-label_mail = Label(frame,text="Gmail",font=("Segoe UI",10,"bold"))
-enter_mail = Entry(frame,font=("Segoe UI",15),width="25")
-label_mail.grid(row=0, column=0, sticky="w", pady=(0,4))
-enter_mail.grid(row=1, column=0, sticky="ew", pady=(0,15))
+    # 💡 Thêm tham số `event=None` để tương thích với cả lệnh Click chuột và lệnh Gõ phím
+    def handle_login(self, event=None):
+        email = self.entry_email.get().strip()
+        pwd = self.entry_pwd.get().strip()
+        
+        # Gọi hàm login từ Controller
+        success, msg, role = self.main_ctrl.login(email, pwd)
+        
+        if success:
+            # TIÊU DIỆT CỬA SỔ ĐĂNG NHẬP
+            self.window.destroy()
+            
+            # ĐIỀU HƯỚNG TỚI CỬA SỔ TƯƠNG ỨNG THEO ROLE
+            if role == 'Staff':
+                ASWindow(self.main_ctrl)
+            elif role == 'Lecturer':
+                LecturerWindow(self.main_ctrl)
+            elif role == 'Student':
+                StudentWindow(self.main_ctrl)
+        else:
+            # Nếu sai pass, hiện dòng chữ đỏ lên
+            self.lbl_error.config(text="Email hoặc Mật khẩu không chính xác")
 
-label_password = Label(frame,text="Password",font=("Segoe UI",10,"bold"))
-enter_password= Entry(frame,font=("Segoe UI",15),width="25",show="*")
-label_password.grid(row=3, column=0, sticky="w", pady=(0,4))
-enter_password.grid(row=4, column=0, sticky="ew", pady=(0,15))
-
-def click():
-    mail=enter_mail.get()
-    password=enter_password.get()
-    controller = MainController()
-    
-    # Đã cấp quyền truyền 2 tham số email và password
-    success, message, role = controller.login(mail, password)
-    
-    if success:
-        if role == "Student":
-            from views.student_view import StudentWindow
-            print(message)
-            StudentWindow(controller)
-        elif role == "Lecturer": # Sửa cho khớp với CSDL
-            from views.lecturer_view import LecturerWindow
-            print(message)
-            LecturerWindow(controller)
-        elif role == "Staff": # Sửa cho khớp với CSDL
-            from views.acs_view import ASWindow
-            print(message)
-            ASWindow(controller)
-        window.destroy()
-    else:
-        label_error.config(text=message)
-
-label_error = Label(frame, text="", fg="red", bg="white")
-label_error.grid(row=6, column=0)
-
-signin_btn = Button(frame,text ="Sign in",command = click)
-signin_btn.grid(row=5, column =0, sticky="ew", pady=(10,0))
-window.bind("<Return>", lambda event: click())
-
-window.update()
-w = window.winfo_width()
-h = window.winfo_height()
-x = (window.winfo_screenwidth() // 2) - (w // 2)
-y = (window.winfo_screenheight() // 2) - (h // 2)
-window.geometry(f"+{x}+{y}")
-
-window.mainloop()
+if __name__ == "__main__":
+    LoginWindow()

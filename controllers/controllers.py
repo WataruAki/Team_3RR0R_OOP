@@ -373,9 +373,10 @@ class AcademicStaffController:
     def get_all_users(self) -> list:
         db = SessionLocal()
         try:
-            # Gắn thêm .order_by(User.user_id.asc()) để SQL tự động xếp ID từ A-Z, từ bé đến lớn
+            # Sắp xếp ID từ A-Z
             users = db.query(User).order_by(User.user_id.asc()).all()
-            return [{"uid": u.user_id, "name": u.name, "email": u.email, "role": u.role} for u in users]
+            # Bổ sung thêm trường "gpa": u.gpa
+            return [{"uid": u.user_id, "name": u.name, "email": u.email, "role": u.role, "gpa": u.gpa} for u in users]
         finally:
             db.close()
 
@@ -453,6 +454,38 @@ class AcademicStaffController:
             db.add(new_course)
             db.commit()
             return True, f"Đã thêm môn học '{course_name}' thành công!"
+        except Exception as e:
+            db.rollback()
+            return False, f"Lỗi CSDL: {str(e)}"
+        finally:
+            db.close()
+
+    def create_course_class(self, class_id: str, course_id: str, lecturer_id: str, max_capacity: int) -> tuple[bool, str]:
+        db = SessionLocal()
+        try:
+            # 1. Kiểm tra xem Mã Lớp đã tồn tại chưa
+            if db.query(CourseClass).filter(CourseClass.class_id == class_id).first():
+                return False, f"Lỗi: Mã lớp '{class_id}' đã tồn tại!"
+            
+            # 2. Kiểm tra xem Môn học có tồn tại không
+            if not db.query(Course).filter(Course.course_id == course_id).first():
+                return False, f"Lỗi: Không tìm thấy học phần '{course_id}' trong CSDL!"
+            
+            # 3. Kiểm tra xem Giảng viên có tồn tại và đúng Role không
+            lecturer = db.query(User).filter(User.user_id == lecturer_id, User.role == 'Lecturer').first()
+            if not lecturer:
+                return False, f"Lỗi: Không tìm thấy Giảng viên có mã '{lecturer_id}'!"
+
+            # 4. Thêm Lớp mới
+            new_class = CourseClass(
+                class_id=class_id.strip(),
+                course_id=course_id.strip(),
+                lecturer_id=lecturer_id.strip(),
+                max_capacity=max_capacity
+            )
+            db.add(new_class)
+            db.commit()
+            return True, f"Đã mở lớp '{class_id}' thành công và phân công cho GV {lecturer.name}!"
         except Exception as e:
             db.rollback()
             return False, f"Lỗi CSDL: {str(e)}"

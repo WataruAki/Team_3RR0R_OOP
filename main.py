@@ -9,15 +9,17 @@ def seed_mock_data():
         print("[SEED] Đang khởi tạo dữ liệu mẫu với Cấu trúc ID mới...")
 
         staff = User(user_id="001", name="Trần Thị Giáo Vụ", email="giaovu@vnu.edu.vn", password=hash_pwd("12345678", "giaovu@vnu.edu.vn"), role="Staff")
-        
-        # ĐỔI ĐỊNH DẠNG MSGV THEO YÊU CẦU: VJU001
         lecturer = User(user_id="VJU001", name="Bùi Huy Kiên", email="giangvien@vnu.edu.vn", password=hash_pwd("12345678", "giangvien@vnu.edu.vn"), role="Lecturer")
         db.add_all([staff, lecturer])
         
         sv1 = User(user_id="25112007", name="Hoàng Việt Anh", email="anhhv@vnu.edu.vn", password=hash_pwd("12345678", "anhhv@vnu.edu.vn"), role="Student", gpa=3.8, rls=90, credits=21)
         sv2 = User(user_id="25112008", name="Lê Văn Thái An", email="anlv@vnu.edu.vn", password=hash_pwd("12345678", "anlv@vnu.edu.vn"), role="Student", gpa=3.5, rls=85, credits=18)
         sv3 = User(user_id="25112009", name="Nguyễn Vũ Hương Ly", email="lynv@vnu.edu.vn", password=hash_pwd("12345678", "lynv@vnu.edu.vn"), role="Student", gpa=2.9, rls=75, credits=15)
-        db.add_all([sv1, sv2, sv3])
+        
+        # THÊM SINH VIÊN CÁ BIỆT ĐỂ TEST CẢNH CÁO HỌC VỤ
+        sv_fail = User(user_id="25112010", name="Nguyễn Cá Biệt", email="cabiet@vnu.edu.vn", password=hash_pwd("12345678", "cabiet@vnu.edu.vn"), role="Student", gpa=1.5, rls=40, credits=10)
+        
+        db.add_all([sv1, sv2, sv3, sv_fail])
         db.commit()
 
         mon_oop = Course(course_id="CSE3011", course_name="Lập trình hướng đối tượng", credits=3)
@@ -26,7 +28,6 @@ def seed_mock_data():
         db.add_all([mon_oop, mon_ml, mon_web])
         db.commit()
 
-        # ĐỒNG BỘ MSGV MỚI (VJU001) CHO TẤT CẢ CÁC LỚP HỌC PHẦN
         lop_oop_1 = CourseClass(class_id="CSE3011_C1", course_id="CSE3011", lecturer_id="VJU001")
         lop_oop_2 = CourseClass(class_id="CSE3011_C2", course_id="CSE3011", lecturer_id="VJU001")
         lop_web = CourseClass(class_id="WEB2011_C1", course_id="WEB2011", lecturer_id="VJU001")
