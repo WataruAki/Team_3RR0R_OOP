@@ -310,6 +310,28 @@ class LecturerController:
         finally:
             db.close()
 
+    def get_class_grades(self, class_id: str) -> list:
+        db = SessionLocal()
+        try:
+            # Tìm tất cả sinh viên đăng ký lớp này
+            enrollments = db.query(Enrollment).filter(Enrollment.class_id == class_id).all()
+            res = []
+            for e in enrollments:
+                student = db.query(User).filter(User.user_id == e.student_id).first()
+                if student:
+                    res.append({
+                        'uid': e.student_id,
+                        'name': student.name,
+                        'cc': e.chuyen_can if e.chuyen_can is not None else "---",
+                        'gk': e.giua_ky if e.giua_ky is not None else "---",
+                        'ck': e.cuoi_ky if e.cuoi_ky is not None else "---",
+                        # Dùng getattr để tương thích an toàn với các tên biến CSDL
+                        'tong': getattr(e, 'tong_ket', getattr(e, 'tong', "---")) or "---",
+                        'he4': getattr(e, 'diem_he_4', getattr(e, 'he4', "---")) or "---"
+                    })
+            return res
+        finally:
+            db.close()
 class AcademicStaffController:
     def __init__(self, main_controller: MainController):
         self.main_ctrl = main_controller
