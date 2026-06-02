@@ -28,7 +28,7 @@ def seed_mock_data():
         db.add_all([mon_oop, mon_ml, mon_web])
         db.commit()
 
-        lop_oop_1 = CourseClass(class_id="CSE3011_C1", course_id="CSE3011", lecturer_id="VJU001")
+        lop_oop_1 = CourseClass(class_id="CSE3011_C1", course_id="CSE3011", lecturer_id="VJU001",max_capacity=2)
         lop_oop_2 = CourseClass(class_id="CSE3011_C2", course_id="CSE3011", lecturer_id="VJU001")
         lop_web = CourseClass(class_id="WEB2011_C1", course_id="WEB2011", lecturer_id="VJU001")
         db.add_all([lop_oop_1, lop_oop_2, lop_web])

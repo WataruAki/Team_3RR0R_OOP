@@ -143,7 +143,27 @@ class StudentController:
         db = SessionLocal()
         try:
             enrollments = db.query(Enrollment).filter(Enrollment.student_id == self.main_ctrl.current_user.user_id).all()
-            return [{"class_id": e.class_id, "cc": e.chuyen_can, "gk": e.giua_ky, "ck": e.cuoi_ky, "tong": e.diem_tong_ket, "he4": e.diem_he_4} for e in enrollments]
+            res = []
+            for e in enrollments:
+                tong = e.diem_tong_ket
+                chu = "---"
+                if tong is not None:
+                    if tong >= 8.5: chu = "A"
+                    elif tong >= 7.0: chu = "B"
+                    elif tong >= 5.5: chu = "C"
+                    elif tong >= 4.0: chu = "D"
+                    else: chu = "F"
+                
+                res.append({
+                    "class_id": e.class_id, 
+                    "cc": e.chuyen_can if e.chuyen_can is not None else "---", 
+                    "gk": e.giua_ky if e.giua_ky is not None else "---", 
+                    "ck": e.cuoi_ky if e.cuoi_ky is not None else "---", 
+                    "tong": tong if tong is not None else "---", 
+                    "he4": e.diem_he_4 if e.diem_he_4 is not None else "---",
+                    "chu": chu
+                })
+            return res
         finally:
             db.close()
 
@@ -227,36 +247,55 @@ class LecturerController:
             course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id, CourseClass.lecturer_id == self.main_ctrl.current_user.user_id).first()
             if not course_class: return False, "Lỗi: Bạn không phụ trách lớp này!"
             
+            # Lấy thông tin Tín chỉ của Môn học này
+            course_obj = db.query(Course).filter(Course.course_id == course_class.course_id).first()
+            c_cred = course_obj.credits if course_obj else 3 
+            
             enrollments = db.query(Enrollment).filter(Enrollment.class_id == class_id).all()
             count = 0
+            
             for e in enrollments:
-                if not e.is_locked:
+                # 1. Chặn lỗi bảo vệ: Bắt buộc phải tính điểm tổng trước
+                he4 = getattr(e, 'diem_he_4', getattr(e, 'he4', None))
+                if he4 is None:
+                    return False, "⚠️ Lỗi: Vui lòng bấm '1. Tính điểm tổng' trước khi khóa sổ!"
+                    
+                if not getattr(e, 'is_locked', False): 
                     e.is_locked = True
                     
-                    letter = "A" if e.diem_he_4 == 4.0 else ("B" if e.diem_he_4 == 3.0 else ("C" if e.diem_he_4 == 2.0 else ("D" if e.diem_he_4 == 1.0 else "F")))
+                    # 2. Xét điểm chữ
+                    letter = "A" if he4 == 4.0 else ("B" if he4 == 3.0 else ("C" if he4 == 2.0 else ("D" if he4 == 1.0 else "F")))
+                    
+                    # 3. Lưu lịch sử môn học
                     passed_record = db.query(CompletedCourse).filter_by(student_id=e.student_id, course_id=course_class.course_id).first()
                     if not passed_record:
                         db.add(CompletedCourse(student_id=e.student_id, course_id=course_class.course_id, grade_letter=letter))
                     else:
                         passed_record.grade_letter = letter
                     
-                    # VÁ LỖ HỔNG FLOATING DRIFT: Tự động lặp qua mọi môn học để tính lại GPA từ đầu (từ số 0)
-                    all_locked = db.query(Enrollment).filter(Enrollment.student_id == e.student_id, Enrollment.is_locked == True).all()
-                    total_points = 0.0
-                    total_creds = 0
-                    for en in all_locked:
-                        c_cred = en.course_class.course.credits
-                        if c_cred > 0 and en.diem_he_4 is not None:
-                            total_points += en.diem_he_4 * c_cred
-                            total_creds += c_cred
-                    
+                    # 4. THUẬT TOÁN CỘNG DỒN GPA & TÍN CHỈ (INCREMENTAL UPDATE)
                     student = db.query(User).filter(User.user_id == e.student_id).first()
-                    student.credits = total_creds
-                    student.gpa = round(total_points / total_creds, 2) if total_creds > 0 else 0.0
-                    
+                    if student:
+                        old_gpa = getattr(student, 'gpa', 0.0) or 0.0
+                        old_creds = getattr(student, 'credits', 0) or 0 # Đóng vai trò là mẫu số tính GPA
+                        
+                        # Phục hồi tổng điểm lịch sử
+                        current_total_points = old_gpa * old_creds
+                        
+                        # Tính GPA mới (Môn F vẫn bị cộng vào mẫu số để kéo GPA xuống)
+                        new_total_creds_for_gpa = old_creds + c_cred
+                        new_gpa = (current_total_points + (he4 * c_cred)) / new_total_creds_for_gpa if new_total_creds_for_gpa > 0 else 0.0
+                        
+                        # Cập nhật GPA
+                        student.gpa = round(new_gpa, 2)
+                        
+                        # Tín chỉ tích lũy (Earned Credits) chỉ cộng khi KHÔNG bị F
+                        if he4 > 0.0:
+                            student.credits = old_creds + c_cred
+                            
                     count += 1
             db.commit()
-            return True, f"Đã khóa sổ và tính GPA cho {count} sinh viên!"
+            return True, f"Khóa sổ thành công! Đã cập nhật GPA cho {count} sinh viên."
         except Exception as e:
             db.rollback()
             return False, f"Lỗi khóa điểm: {str(e)}"
@@ -313,21 +352,29 @@ class LecturerController:
     def get_class_grades(self, class_id: str) -> list:
         db = SessionLocal()
         try:
-            # Tìm tất cả sinh viên đăng ký lớp này
             enrollments = db.query(Enrollment).filter(Enrollment.class_id == class_id).all()
             res = []
             for e in enrollments:
                 student = db.query(User).filter(User.user_id == e.student_id).first()
                 if student:
+                    tong = getattr(e, 'diem_tong_ket', getattr(e, 'tong_ket', getattr(e, 'tong', None)))
+                    chu = "---"
+                    if tong is not None:
+                        if tong >= 8.5: chu = "A"
+                        elif tong >= 7.0: chu = "B"
+                        elif tong >= 5.5: chu = "C"
+                        elif tong >= 4.0: chu = "D"
+                        else: chu = "F"
+                        
                     res.append({
                         'uid': e.student_id,
                         'name': student.name,
                         'cc': e.chuyen_can if e.chuyen_can is not None else "---",
                         'gk': e.giua_ky if e.giua_ky is not None else "---",
                         'ck': e.cuoi_ky if e.cuoi_ky is not None else "---",
-                        # Dùng getattr để tương thích an toàn với các tên biến CSDL
-                        'tong': getattr(e, 'tong_ket', getattr(e, 'tong', "---")) or "---",
-                        'he4': getattr(e, 'diem_he_4', getattr(e, 'he4', "---")) or "---"
+                        'tong': tong if tong is not None else "---",
+                        'he4': getattr(e, 'diem_he_4', getattr(e, 'he4', "---")) if getattr(e, 'diem_he_4', getattr(e, 'he4', None)) is not None else "---",
+                        'chu': chu
                     })
             return res
         finally:

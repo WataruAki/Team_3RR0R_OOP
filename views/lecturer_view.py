@@ -70,44 +70,61 @@ class LecturerWindow:
         self.frame_attendance = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         ctk.CTkLabel(self.frame_attendance, text="Phiên điểm danh", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         form_att = ctk.CTkFrame(self.frame_attendance, corner_radius=15, fg_color=CARD_BG); form_att.pack(fill="x", ipadx=20, ipady=25)
-        
         self.entry_att_class = ctk.CTkEntry(form_att, placeholder_text="Mã lớp học phần", width=320, **entry_opts); self.entry_att_class.pack(pady=10)
-        
         otp_f = ctk.CTkFrame(form_att, fg_color="transparent"); otp_f.pack(pady=15)
         self.entry_att_token = ctk.CTkEntry(otp_f, placeholder_text="Mã OTP", font=("Segoe UI", 16, "bold"), width=160, height=45, border_width=0, corner_radius=8, fg_color=("white", "#333333"), text_color="#06B6D4")
         self.entry_att_token.pack(side="left", padx=(0, 15))
         ctk.CTkButton(otp_f, text="Tạo ngẫu nhiên", fg_color="#8B5CF6", hover_color="#7C3AED", **action_btn).pack(side="left")
-
         act_f = ctk.CTkFrame(form_att, fg_color="transparent"); act_f.pack(pady=15)
         ctk.CTkButton(act_f, text="▶ Mở phiên", fg_color="#10B981", hover_color="#059669", **action_btn).pack(side="left", padx=10)
         ctk.CTkButton(act_f, text="🔒 Đóng phiên", fg_color="#EF4444", hover_color="#DC2626", **action_btn).pack(side="left", padx=10)
         self.lbl_att_result = ctk.CTkLabel(form_att, text="", font=("Segoe UI", 13, "bold")); self.lbl_att_result.pack(pady=10)
 
-        # 3. NHẬP ĐIỂM (CẬP NHẬT CÓ TREEVIEW)
+        # =================================================================
+        # 3. NHẬP ĐIỂM & KHÓA SỔ (ĐÃ THIẾT KẾ LẠI THEO TABS)
+        # =================================================================
         self.frame_grade = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        ctk.CTkLabel(self.frame_grade, text="Cập nhật điểm ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_grade, text="Quản lý Điểm & Khóa sổ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 10))
         
-        form_gr = ctk.CTkFrame(self.frame_grade, corner_radius=15, fg_color=CARD_BG); form_gr.pack(fill="x", ipadx=15, ipady=20)
-        self.entry_grade_class = ctk.CTkEntry(form_gr, placeholder_text="Mã Lớp", width=140, **entry_opts); self.entry_grade_class.grid(row=0, column=0, padx=10, pady=10)
-        self.entry_student = ctk.CTkEntry(form_gr, placeholder_text="Mã SV", width=140, **entry_opts); self.entry_student.grid(row=0, column=1, padx=10, pady=10)
-        self.cmb_score = ctk.CTkComboBox(form_gr, values=["chuyen_can", "giua_ky", "cuoi_ky"], width=150, **entry_opts); self.cmb_score.grid(row=0, column=2, padx=10, pady=10)
-        self.entry_score = ctk.CTkEntry(form_gr, placeholder_text="Điểm số", width=100, **entry_opts); self.entry_score.grid(row=0, column=3, padx=10, pady=10)
-        ctk.CTkButton(form_gr, text="Lưu Điểm", fg_color="#3B82F6", hover_color="#2563EB", command=self.handle_input_grade, **action_btn).grid(row=0, column=4, padx=10, pady=10)
-        self.lbl_grade_result = ctk.CTkLabel(form_gr, text="", font=("Segoe UI", 12)); self.lbl_grade_result.grid(row=1, column=0, columnspan=5)
+        # Tầng 1: Thanh công cụ chung (Lấy bối cảnh lớp học)
+        top_bar = ctk.CTkFrame(self.frame_grade, corner_radius=15, fg_color=CARD_BG)
+        top_bar.pack(fill="x", pady=(0, 15), ipadx=10, ipady=10)
+        ctk.CTkLabel(top_bar, text="Mã Lớp:", font=("Segoe UI", 14, "bold")).pack(side="left", padx=15)
+        self.entry_grade_class = ctk.CTkEntry(top_bar, placeholder_text="VD: CSE3011_C1", width=180, **entry_opts)
+        self.entry_grade_class.pack(side="left", padx=10)
+        ctk.CTkButton(top_bar, text="🔄 Tải Bảng Điểm", fg_color="#6B7280", hover_color="#4B5563", command=self.load_class_grades, **action_btn).pack(side="left", padx=15)
+        self.lbl_grade_result = ctk.CTkLabel(top_bar, text="", font=("Segoe UI", 12, "bold"))
+        self.lbl_grade_result.pack(side="left", padx=15)
 
-        act_gr_f = ctk.CTkFrame(self.frame_grade, fg_color="transparent"); act_gr_f.pack(anchor="w", pady=(10, 20))
-        # 💡 Bổ sung nút Tải Bảng Điểm
-        ctk.CTkButton(act_gr_f, text="Tải bảng điểm", fg_color="#6B7280", hover_color="#4B5563", command=self.load_class_grades, **action_btn).pack(side="left", padx=(0, 15))
-        ctk.CTkButton(act_gr_f, text="Tự động tính điểm", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.calculate_final, **action_btn).pack(side="left", padx=(0, 15))
-        ctk.CTkButton(act_gr_f, text="Khóa & Cập nhật GPA", fg_color="#EF4444", hover_color="#DC2626", command=self.lock_grades, **action_btn).pack(side="left")
+        # Tầng 2: Tabview ngăn cách hành động
+        self.grade_tabs = ctk.CTkTabview(self.frame_grade, fg_color=CARD_BG, corner_radius=15, segmented_button_selected_color="#06B6D4", height=100)
+        self.grade_tabs.pack(fill="x", pady=(0, 15))
 
-        # 💡 Bổ sung Bảng dữ liệu Điểm
-        self.tree_gr = ttk.Treeview(self.frame_grade, columns=('uid', 'name', 'cc', 'gk', 'ck', 'tong', 'he4'), show='headings')
+        tab_nhap = self.grade_tabs.add("📝 Nhập điểm thành phần")
+        tab_khoa = self.grade_tabs.add("🔐 Tổng kết & Khóa sổ")
+
+        # --- Nội dung Tab: Nhập Điểm ---
+        self.entry_student = ctk.CTkEntry(tab_nhap, placeholder_text="Mã Sinh Viên", width=150, **entry_opts)
+        self.entry_student.pack(side="left", padx=10, pady=10)
+        self.cmb_score = ctk.CTkComboBox(tab_nhap, values=["chuyen_can", "giua_ky", "cuoi_ky"], width=150, **entry_opts)
+        self.cmb_score.pack(side="left", padx=10, pady=10)
+        self.entry_score = ctk.CTkEntry(tab_nhap, placeholder_text="Điểm số", width=100, **entry_opts)
+        self.entry_score.pack(side="left", padx=10, pady=10)
+        ctk.CTkButton(tab_nhap, text="Lưu Điểm", fg_color="#3B82F6", hover_color="#2563EB", command=self.handle_input_grade, **action_btn).pack(side="left", padx=10, pady=10)
+
+        # --- Nội dung Tab: Khóa Sổ ---
+        ctk.CTkLabel(tab_khoa, text="⚠️ Lưu ý: Chỉ thực hiện khi đã nhập xong toàn bộ điểm.", text_color="#F59E0B", font=("Segoe UI", 13, "italic")).pack(side="left", padx=15)
+        ctk.CTkButton(tab_khoa, text="📊 1. Tính điểm tổng", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.calculate_final, **action_btn).pack(side="left", padx=10, pady=10)
+        ctk.CTkButton(tab_khoa, text="🔒 2. Khóa điểm & Cập nhật GPA", fg_color="#EF4444", hover_color="#DC2626", command=self.lock_grades, **action_btn).pack(side="left", padx=10, pady=10)
+
+        # Tầng 3: Bảng dữ liệu Điểm (Dùng chung)
+        # 💡 THÊM CỘT ĐIỂM CHỮ
+        self.tree_gr = ttk.Treeview(self.frame_grade, columns=('uid', 'name', 'cc', 'gk', 'ck', 'tong', 'he4', 'chu'), show='headings')
         self.tree_gr.heading('uid', text='Mã SV'); self.tree_gr.heading('name', text='Họ và tên')
         self.tree_gr.heading('cc', text='Chuyên cần'); self.tree_gr.heading('gk', text='Giữa kỳ'); self.tree_gr.heading('ck', text='Cuối kỳ')
-        self.tree_gr.heading('tong', text='Tổng (10)'); self.tree_gr.heading('he4', text='Hệ 4')
+        self.tree_gr.heading('tong', text='Tổng (10)'); self.tree_gr.heading('he4', text='Hệ 4'); self.tree_gr.heading('chu', text='Điểm chữ')
         self.tree_gr.column('cc', width=90, anchor='center'); self.tree_gr.column('gk', width=90, anchor='center'); self.tree_gr.column('ck', width=90, anchor='center')
-        self.tree_gr.column('tong', width=90, anchor='center'); self.tree_gr.column('he4', width=90, anchor='center')
+        self.tree_gr.column('tong', width=90, anchor='center'); self.tree_gr.column('he4', width=90, anchor='center'); self.tree_gr.column('chu', width=80, anchor='center')
         self.tree_gr.pack(fill="both", expand=True)
         self.tree_gr.bind("<ButtonRelease-1>", self.select_student_grade)
 
@@ -185,11 +202,12 @@ class LecturerWindow:
         for row in self.tree_gr.get_children(): self.tree_gr.delete(row)
         grades = self.lecturer_ctr.get_class_grades(cid) 
         if not grades:
-            messagebox.showinfo("Thông báo", "Lớp này không có sinh viên hoặc mã lớp sai.")
+            self.lbl_grade_result.configure(text="Lớp trống hoặc mã sai.", text_color="#EF4444")
             return
             
+        self.lbl_grade_result.configure(text=f"Đã tải điểm lớp {cid}", text_color="#10B981")
         for g in grades:
-            self.tree_gr.insert('', 'end', values=(g['uid'], g['name'], g['cc'], g['gk'], g['ck'], g['tong'], g['he4']))
+            self.tree_gr.insert('', 'end', values=(g['uid'], g['name'], g['cc'], g['gk'], g['ck'], g['tong'], g['he4'], g['chu']))
 
     # 💡 Auto Fill khi click vào tên Sinh viên trong bảng
     def select_student_grade(self, event):
@@ -197,7 +215,7 @@ class LecturerWindow:
         if sel:
             item = self.tree_gr.item(sel[0])['values']
             self.entry_student.delete(0, END)
-            self.entry_student.insert(0, str(item[0])) # Lấy Mã SV (Cột đầu tiên)
+            self.entry_student.insert(0, str(item[0])) # Lấy Mã SV
 
     def handle_input_grade(self):
         try: value = float(self.entry_score.get())
@@ -215,9 +233,11 @@ class LecturerWindow:
 
     def lock_grades(self):
         cid = self.entry_grade_class.get().strip()
-        if messagebox.askyesno("Khóa điểm", f"Khóa sổ {cid}? Lệnh này sẽ chốt điểm không cho sửa nữa."): 
+        if messagebox.askyesno("Khóa điểm", f"Khóa sổ {cid}? Lệnh này sẽ chốt điểm vĩnh viễn."): 
             success, msg = self.lecturer_ctr.lock_class_grades(cid)
-            if success: messagebox.showinfo("OK", msg)
+            if success: 
+                messagebox.showinfo("OK", msg)
+                self.load_class_grades()
             else: messagebox.showerror("Lỗi", msg)
 
     def create_hw(self):

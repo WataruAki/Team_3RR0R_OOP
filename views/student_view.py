@@ -13,7 +13,7 @@ class StudentWindow:
         self.student_ctr = StudentController(main_controller)
         self.window = ctk.CTk()
         self.window.geometry("1150x750")
-        self.window.title("BCSE - SINH VIÊN")
+        self.window.title("BCSE - Sinh Viên")
         self.window.configure(fg_color=APP_BG)
 
         # SIDEBAR
@@ -31,12 +31,11 @@ class StudentWindow:
         ctk.CTkButton(self.sidebar, text="📈 Tra cứu điểm", command=self.show_grades, **btn_opts).pack(fill="x", padx=15, pady=5)
         ctk.CTkButton(self.sidebar, text="🔑 Điểm danh OTP", command=self.show_attendance, **btn_opts).pack(fill="x", padx=15, pady=5)
 
-        # NÚT THEME
         self.btn_theme = ctk.CTkButton(self.sidebar, text="☀️ Light Mode" if ctk.get_appearance_mode()=="Dark" else "🌙 Dark Mode", 
                                        command=self.toggle_theme, fg_color=("gray85", "#2C2C2E"), text_color=("black", "white"), font=("Segoe UI", 12, "bold"), corner_radius=20)
         self.btn_theme.pack(side="bottom", fill="x", padx=20, pady=(0, 25))
 
-        # PROFILE BADGE
+        # PROFILE
         user = main_controller.current_user
         u_name = getattr(user, 'name', 'Hoàng Việt Anh')
         u_id = getattr(user, 'user_id', '25112007')
@@ -45,7 +44,7 @@ class StudentWindow:
         self.profile_card = ctk.CTkFrame(self.sidebar, corner_radius=15, fg_color=("gray85", "#2C2C2E"))
         self.profile_card.pack(side="bottom", fill="x", padx=15, pady=(0, 20))
         self.avatar = ctk.CTkLabel(self.profile_card, text=initials, font=("Segoe UI", 16, "bold"), 
-                                   width=46, height=46, corner_radius=23, fg_color="#10B981", text_color="white") # Avatar xanh Sinh Viên
+                                   width=46, height=46, corner_radius=23, fg_color="#10B981", text_color="white")
         self.avatar.pack(side="left", padx=10, pady=10)
 
         info_f = ctk.CTkFrame(self.profile_card, fg_color="transparent")
@@ -85,22 +84,27 @@ class StudentWindow:
         ctk.CTkLabel(self.frame_register, text="Đăng ký học phần", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         form_reg = ctk.CTkFrame(self.frame_register, corner_radius=15, fg_color=CARD_BG); form_reg.pack(fill="x", ipadx=25, ipady=30)
         self.entry_class_id = ctk.CTkEntry(form_reg, placeholder_text="Nhập mã lớp...", width=350, **entry_opts); self.entry_class_id.pack(pady=15)
-        ctk.CTkButton(form_reg, text="Gửi đăng ký", fg_color="#10B981", hover_color="#059669", command=self.register, **action_btn).pack(pady=15)
+        ctk.CTkButton(form_reg, text="Gửi Đăng Ký", fg_color="#10B981", hover_color="#059669", command=self.register, **action_btn).pack(pady=15)
 
         # 4. TRA CỨU ĐIỂM
         self.frame_grades = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         ctk.CTkLabel(self.frame_grades, text="Tra cứu điểm & GPA", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         self.lbl_scholarship = ctk.CTkLabel(self.frame_grades, text="", font=("Segoe UI", 15, "bold")); self.lbl_scholarship.pack(anchor="w", pady=10)
-        self.tree_gr = ttk.Treeview(self.frame_grades, columns=('class', 'cc', 'gk', 'ck', 'tong', 'he4'), show='headings')
-        for col, text in zip(('class', 'cc', 'gk', 'ck', 'tong', 'he4'), ('Mã lớp', 'Chuyên cần', 'Giữa kỳ', 'Cuối kỳ', 'Tổng (10)', 'Hệ 4')): self.tree_gr.heading(col, text=text); self.tree_gr.column(col, anchor='center')
+        
+        # BẢNG ĐIỂM
+        self.tree_gr = ttk.Treeview(self.frame_grades, columns=('class', 'cc', 'gk', 'ck', 'tong', 'he4', 'chu'), show='headings')
+        for col, text in zip(('class', 'cc', 'gk', 'ck', 'tong', 'he4', 'chu'), ('Mã lớp', 'Chuyên cần', 'Giữa kỳ', 'Cuối kỳ', 'Tổng (10)', 'Hệ 4', 'Điểm chữ')): 
+            self.tree_gr.heading(col, text=text); self.tree_gr.column(col, anchor='center')
         self.tree_gr.pack(fill="both", expand=True)
 
         # 5. ĐIỂM DANH OTP
         self.frame_attendance = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         ctk.CTkLabel(self.frame_attendance, text="Điểm danh OTP", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         form_att = ctk.CTkFrame(self.frame_attendance, corner_radius=15, fg_color=CARD_BG); form_att.pack(fill="x", ipadx=25, ipady=30)
+        
         self.entry_att_class = ctk.CTkEntry(form_att, placeholder_text="Mã lớp", width=350, **entry_opts); self.entry_att_class.pack(pady=15)
-        self.entry_att_code = ctk.CTkEntry(form_att, placeholder_text="Mã bảo mật", font=("Segoe UI", 15, "bold"), text_color="#F59E0B", width=350, **entry_opts); self.entry_att_code.pack(pady=15)
+        self.entry_att_code = ctk.CTkEntry(form_att, placeholder_text="Mã bảo mật", font=("Segoe UI", 15, "bold"), text_color="#F59E0B", width=350, height=45, border_width=0, corner_radius=10, fg_color=("#F3F4F6", "#2C2C2E"))
+        self.entry_att_code.pack(pady=15)
         ctk.CTkButton(form_att, text="Check-in", fg_color="#F59E0B", hover_color="#D97706", command=self.handle_attendance, **action_btn).pack(pady=15)
 
         self.apply_treeview_style(ctk.get_appearance_mode())
@@ -132,7 +136,8 @@ class StudentWindow:
         info = self.student_ctr.get_dashboard_info()
         if info and "profile" in info:
             p = info["profile"]
-            self.lbl_profile.configure(text=f"🎓 Tên: {p['name']}   |   🆔 UID: {p['uid']}   |   📈 GPA: {p['gpa']}   |   📚 TC: {p['credits']}")
+            # 💡 Sửa chữ TC thành "TC Tích luỹ" cho rõ ràng
+            self.lbl_profile.configure(text=f"🎓 Tên: {p['name']}   |   🆔 UID: {p['uid']}   |   📈 GPA: {p['gpa']}   |   📚 TC Tích luỹ: {p['credits']}")
             if info["warning"]["is_warned"]: self.lbl_warning.configure(text=f"⚠️ {info['warning']['message']}", text_color="#EF4444")
             else: self.lbl_warning.configure(text=f"✅ {info['warning']['message']}", text_color="#10B981")
         
@@ -146,10 +151,14 @@ class StudentWindow:
         for h in self.student_ctr.get_assignments(): self.tree_hw.insert('', 'end', values=(h['id'], h['class_id'], h['status'], h['time'] or "---"))
 
     def show_register(self): self.hide_all(); self.frame_register.pack(fill="both", expand=True)
+    
     def show_grades(self):
         self.hide_all(); self.frame_grades.pack(fill="both", expand=True)
         for row in self.tree_gr.get_children(): self.tree_gr.delete(row)
-        for g in self.student_ctr.get_detailed_grades(): self.tree_gr.insert('', 'end', values=(g['class_id'], g['cc'], g['gk'], g['ck'], g['tong'], g['he4']))
+        for g in self.student_ctr.get_detailed_grades(): 
+            # 💡 SỬA LỖI TẠI ĐÂY: Truyền đủ 7 tham số, thêm g['chu'] vào cuối
+            self.tree_gr.insert('', 'end', values=(g['class_id'], g['cc'], g['gk'], g['ck'], g['tong'], g['he4'], g['chu']))
+            
         info = self.student_ctr.get_dashboard_info()
         if info and info["profile"]['credits'] >= 18 and info["profile"]['gpa'] >= 3.2: self.lbl_scholarship.configure(text="🎉 Đủ điều kiện!", text_color="#10B981")
         else: self.lbl_scholarship.configure(text="❌ Chưa đủ điều kiện.", text_color="#EF4444")
@@ -158,16 +167,40 @@ class StudentWindow:
 
     def submit_hw(self):
         sel = self.tree_hw.selection()
-        if sel and self.student_ctr.submit_assignment(int(self.tree_hw.item(sel[0])['values'][0]))[0]: self.show_assignment()
+        if not sel: 
+            messagebox.showwarning("Thiếu", "Vui lòng chọn 1 bài tập!")
+            return
+        success, msg = self.student_ctr.submit_assignment(int(self.tree_hw.item(sel[0])['values'][0]))
+        if success: 
+            messagebox.showinfo("Thành công", msg)
+            self.show_assignment()
+        else:
+            messagebox.showerror("Lỗi", msg)
 
     def register(self):
-        if self.student_ctr.register_class(self.entry_class_id.get().strip())[0]: messagebox.showinfo("OK", "Đăng ký thành công!")
+        class_id = self.entry_class_id.get().strip()
+        if not class_id:
+            messagebox.showwarning("Thiếu", "Vui lòng nhập Mã lớp học phần (VD: CSE3011_C1)!")
+            return
+        success, msg = self.student_ctr.register_class(class_id)
+        if success: 
+            messagebox.showinfo("Thành công", msg)
+        else:
+            messagebox.showerror("Từ chối", msg)
 
     def handle_attendance(self):
-        if self.student_ctr.check_in_attendance(self.entry_att_class.get().strip(), self.entry_att_code.get().strip())[0]: messagebox.showinfo("OK", "Điểm danh thành công!")
+        class_id = self.entry_att_class.get().strip()
+        code = self.entry_att_code.get().strip()
+        if not class_id or not code:
+            messagebox.showwarning("Thiếu", "Vui lòng nhập đủ thông tin!")
+            return
+        success, msg = self.student_ctr.check_in_attendance(class_id, code)
+        if success: 
+            messagebox.showinfo("Thành công", msg)
+        else:
+            messagebox.showerror("Từ chối", msg)
 
 if __name__ == "__main__":
     fake_ctrl = MainController()
-    # 💡 Cập nhật fake data để test avatar không bị lỗi
     fake_ctrl.current_user = type('obj', (object,), {'role': 'Student', 'name': 'Hoàng Việt Anh', 'user_id': '25112007'})() 
     StudentWindow(fake_ctrl)
