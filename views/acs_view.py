@@ -76,7 +76,7 @@ class ASWindow:
         label_opts = {"text_color": ("gray20", "gray80"), "font": ("Segoe UI", 12, "bold")}
 
         # 1. GIAO DIỆN CRUD
-        ctk.CTkLabel(self.frame_crud, text="Quản lý tài khoản & học phần", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_crud, text="Quản lý chung", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         form_frame = ctk.CTkFrame(self.frame_crud, fg_color=CARD_BG, corner_radius=15)
         form_frame.pack(fill="x", pady=(0, 20), ipadx=15, ipady=15)
         
@@ -88,7 +88,7 @@ class ASWindow:
         
         btn_f = ctk.CTkFrame(form_frame, fg_color="transparent"); btn_f.grid(row=3, column=0, columnspan=4, pady=(20, 5))
         ctk.CTkButton(btn_f, text="Làm mới", fg_color="#6B7280", hover_color="#4B5563", command=self.clear_form, **action_btn).pack(side="left", padx=8)
-        ctk.CTkButton(btn_f, text="Thêm Mới", fg_color="#10B981", hover_color="#059669", command=self.add_user, **action_btn).pack(side="left", padx=8)
+        ctk.CTkButton(btn_f, text="Thêm mới", fg_color="#10B981", hover_color="#059669", command=self.add_user, **action_btn).pack(side="left", padx=8)
         ctk.CTkButton(btn_f, text="Cập nhật", fg_color="#3B82F6", hover_color="#2563EB", command=self.update_user, **action_btn).pack(side="left", padx=8)
         ctk.CTkButton(btn_f, text="Xóa", fg_color="#EF4444", hover_color="#DC2626", command=self.delete_user, **action_btn).pack(side="left", padx=8)
 
@@ -101,30 +101,30 @@ class ASWindow:
         self.tree_ad = ttk.Treeview(self.tab_ad, columns=('stt', 'uid', 'name', 'email'), show='headings'); self.tree_ad.heading('stt', text='STT'); self.tree_ad.heading('uid', text='Mã NV'); self.tree_ad.heading('name', text='Họ và tên'); self.tree_ad.heading('email', text='Email'); self.tree_ad.column('stt', width=50, anchor='center'); self.tree_ad.pack(fill="both", expand=True, pady=(10, 0))
         
         hp_tool = ctk.CTkFrame(self.tab_hp, fg_color="transparent"); hp_tool.pack(fill="x", pady=10)
-        ctk.CTkButton(hp_tool, text="➕ Môn Mới", fg_color="#10B981", hover_color="#059669", command=self.open_add_course_popup, **action_btn).pack(side="left", padx=5)
-        ctk.CTkButton(hp_tool, text="➕ Lớp Học", fg_color="#06B6D4", hover_color="#0891B2", command=self.open_add_class_popup, **action_btn).pack(side="left", padx=5)
-        ctk.CTkButton(hp_tool, text="❌ Xóa Môn", fg_color="#EF4444", hover_color="#DC2626", command=self.delete_course_ui, **action_btn).pack(side="left", padx=5)
-        ctk.CTkButton(hp_tool, text="➖ Xóa Lớp", fg_color="#F59E0B", hover_color="#D97706", command=self.delete_class_ui, **action_btn).pack(side="left", padx=5)
-        self.tree_hp = ttk.Treeview(self.tab_hp, columns=('stt', 'cid', 'name', 'creds', 'classes'), show='headings'); self.tree_hp.heading('stt', text='STT'); self.tree_hp.heading('cid', text='Mã Học phần'); self.tree_hp.heading('name', text='Tên môn học'); self.tree_hp.heading('creds', text='Tín chỉ'); self.tree_hp.heading('classes', text='Các Lớp đang mở'); self.tree_hp.column('stt', width=50, anchor='center'); self.tree_hp.column('creds', width=80, anchor='center'); self.tree_hp.pack(fill="both", expand=True, pady=(10, 0))
+        ctk.CTkButton(hp_tool, text="➕ Môn mới", fg_color="#10B981", hover_color="#059669", command=self.open_add_course_popup, **action_btn).pack(side="left", padx=5)
+        ctk.CTkButton(hp_tool, text="➕ Lớp học", fg_color="#06B6D4", hover_color="#0891B2", command=self.open_add_class_popup, **action_btn).pack(side="left", padx=5)
+        ctk.CTkButton(hp_tool, text="❌ Xóa môn", fg_color="#EF4444", hover_color="#DC2626", command=self.delete_course_ui, **action_btn).pack(side="left", padx=5)
+        ctk.CTkButton(hp_tool, text="➖ Xóa lớp", fg_color="#F59E0B", hover_color="#D97706", command=self.delete_class_ui, **action_btn).pack(side="left", padx=5)
+        self.tree_hp = ttk.Treeview(self.tab_hp, columns=('stt', 'cid', 'name', 'creds', 'classes'), show='headings'); self.tree_hp.heading('stt', text='STT'); self.tree_hp.heading('cid', text='Mã Học phần'); self.tree_hp.heading('name', text='Tên môn học'); self.tree_hp.heading('creds', text='Tín chỉ'); self.tree_hp.heading('classes', text='Các lớp đang mở'); self.tree_hp.column('stt', width=50, anchor='center'); self.tree_hp.column('creds', width=80, anchor='center'); self.tree_hp.pack(fill="both", expand=True, pady=(10, 0))
         for t in [self.tree_sv, self.tree_gv, self.tree_ad, self.tree_hp]: t.bind("<ButtonRelease-1>", self.select_user)
 
         # 2. XÉT HỌC BỔNG
-        ctk.CTkLabel(self.frame_scholarship, text="Xét Duyệt Học Bổng", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_scholarship, text="Xét duyệt học bổng", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         f_in = ctk.CTkFrame(self.frame_scholarship, fg_color=CARD_BG, corner_radius=15); f_in.pack(fill="x", pady=(0, 20), ipadx=15, ipady=15)
-        ctk.CTkLabel(f_in, text="Số lượng suất:", font=("Segoe UI", 14, "bold"), text_color=("gray20", "gray80")).pack(side="left", padx=15)
+        ctk.CTkLabel(f_in, text="Số lượng :", font=("Segoe UI", 14, "bold"), text_color=("gray20", "gray80")).pack(side="left", padx=15)
         self.entry_slots = ctk.CTkEntry(f_in, width=120, **entry_opts); self.entry_slots.pack(side="left", padx=10)
-        ctk.CTkButton(f_in, text="Khởi Duyệt", fg_color="#3B82F6", hover_color="#2563EB", command=self.run_scholarship, **action_btn).pack(side="left", padx=15)
-        self.tree_hb = ttk.Treeview(self.frame_scholarship, columns=('uid', 'name', 'score'), show='headings'); self.tree_hb.heading('uid', text='Mã SV'); self.tree_hb.heading('name', text='Họ và Tên'); self.tree_hb.heading('score', text='Điểm Xét Tuyển'); self.tree_hb.pack(fill="both", expand=True)
+        ctk.CTkButton(f_in, text="Bắt đầu", fg_color="#3B82F6", hover_color="#2563EB", command=self.run_scholarship, **action_btn).pack(side="left", padx=15)
+        self.tree_hb = ttk.Treeview(self.frame_scholarship, columns=('uid', 'name', 'score'), show='headings'); self.tree_hb.heading('uid', text='Mã SV'); self.tree_hb.heading('name', text='Họ và tên'); self.tree_hb.heading('score', text='Điểm xét '); self.tree_hb.pack(fill="both", expand=True)
 
         # 3. THỐNG KÊ GPA (CHART CÓ BÓNG ĐỔ)
-        ctk.CTkLabel(self.frame_statistics, text="Thống kê GPA Toàn Khoa", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
-        ctk.CTkButton(self.frame_statistics, text="Tải & Vẽ Biểu Đồ", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.load_data, **action_btn).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_statistics, text="Thống kê GPA ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkButton(self.frame_statistics, text=" Vẽ biểu đồ", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.load_data, **action_btn).pack(anchor="w", pady=(0, 20))
         self.content_frame = ctk.CTkFrame(self.frame_statistics, fg_color="transparent"); self.content_frame.pack(fill="both", expand=True)
         self.tree_stat = ttk.Treeview(self.content_frame, columns=('loai', 'so_luong'), show='headings'); self.tree_stat.heading('loai', text='Xếp loại'); self.tree_stat.heading('so_luong', text='Số sinh viên'); self.tree_stat.pack(side="left", fill="y", padx=(0, 25))
         self.chart_frame = ctk.CTkFrame(self.content_frame, fg_color=CARD_BG, corner_radius=15); self.chart_frame.pack(side="left", fill="both", expand=True)
 
         # 4. QUẢN LÝ HỌC VỤ
-        ctk.CTkLabel(self.frame_management, text="Quản lý Cảnh cáo Học vụ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_management, text="Quản lý cảnh cáo học vụ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         t_f = ctk.CTkFrame(self.frame_management, fg_color="transparent"); t_f.pack(fill="x", pady=(0, 20))
         ctk.CTkButton(t_f, text="Quét danh sách cảnh báo ", fg_color="#6B7280", command=self.load_at_risk_students, **action_btn).pack(side="left", padx=(0, 10))
         ctk.CTkButton(t_f, text="Cảnh cáo", fg_color="#F59E0B", command=lambda: self.change_status("Cảnh cáo học vụ"), **action_btn).pack(side="left", padx=8)
@@ -221,7 +221,7 @@ class ASWindow:
         ctk.CTkButton(p, text="Lưu Môn học", fg_color="#10B981", hover_color="#059669", font=("Segoe UI", 14, "bold"), corner_radius=20, height=45, command=submit).pack(pady=25)
 
     def open_add_class_popup(self):
-        p = ctk.CTkToplevel(self.window); p.title("Mở Lớp Học Phần"); p.geometry("450x500"); p.attributes("-topmost", True); p.configure(fg_color=APP_BG)
+        p = ctk.CTkToplevel(self.window); p.title("Mở lớp học phần"); p.geometry("450x500"); p.attributes("-topmost", True); p.configure(fg_color=APP_BG)
         ctk.CTkLabel(p, text="MỞ LỚP HỌC", font=("Segoe UI", 20, "bold"), text_color="#06B6D4").pack(pady=25)
         opts = {"width": 320, "height": 45, "font": ("Segoe UI", 13), "corner_radius": 8, "border_width": 0, "fg_color": CARD_BG}
         e_cls = ctk.CTkEntry(p, placeholder_text="Mã lớp (VD: CSE3011_C3)", **opts); e_cls.pack(pady=10)
@@ -291,7 +291,7 @@ class ASWindow:
             ax.pie(sizes, explode=explode, labels=labels, colors=['#EF4444', '#3B82F6', '#10B981', '#F59E0B'], 
                    autopct='%1.1f%%', startangle=140, shadow=True, 
                    textprops={'color':"white" if is_dark else "black", 'fontweight': 'bold'})
-            ax.set_title("Thống kê học lực toàn khóa", pad=20, fontweight='bold', color="white" if is_dark else "#111827")
+            ax.set_title("Thống kê học lực ", pad=20, fontweight='bold', color="white" if is_dark else "#111827")
             
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame) 
         canvas.draw()
