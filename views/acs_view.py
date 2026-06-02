@@ -16,7 +16,7 @@ class ASWindow:
         self.staff_ctr = AcademicStaffController(main_controller)
         self.window = ctk.CTk()
         self.window.geometry("1150x750")
-        self.window.title("BCSE - Giáo Vụ")
+        self.window.title("BCSE - GIÁO VỤ")
         self.window.configure(fg_color=APP_BG)
 
         # ==========================================
@@ -31,10 +31,10 @@ class ASWindow:
         btn_opts = {"fg_color": "transparent", "text_color": ("gray20", "gray80"), "hover_color": ("#E5E7EB", "#2C2C2E"), 
                     "font": ("Segoe UI", 14, "bold"), "anchor": "w", "height": 45, "corner_radius": 12}
         
-        ctk.CTkButton(self.sidebar, text="🏢  Quản lý Hệ thống", command=self.show_crud, **btn_opts).pack(fill="x", padx=15, pady=5)
-        ctk.CTkButton(self.sidebar, text="🎓  Xét Học Bổng", command=self.show_scholarship, **btn_opts).pack(fill="x", padx=15, pady=5)
-        ctk.CTkButton(self.sidebar, text="📊  Thống kê GPA", command=self.show_statistics, **btn_opts).pack(fill="x", padx=15, pady=5)
-        ctk.CTkButton(self.sidebar, text="⚠️  Quản lý Học vụ", command=self.show_management, **btn_opts).pack(fill="x", padx=15, pady=5)
+        ctk.CTkButton(self.sidebar, text="🏢  Quản lý hệ thống", command=self.show_crud, **btn_opts).pack(fill="x", padx=15, pady=5)
+        ctk.CTkButton(self.sidebar, text="🎓  Xét học bổng", command=self.show_scholarship, **btn_opts).pack(fill="x", padx=15, pady=5)
+        ctk.CTkButton(self.sidebar, text="📊  Thống kê", command=self.show_statistics, **btn_opts).pack(fill="x", padx=15, pady=5)
+        ctk.CTkButton(self.sidebar, text="⚠️  Quản lý học vụ", command=self.show_management, **btn_opts).pack(fill="x", padx=15, pady=5)
 
         # NÚT THEME
         self.btn_theme = ctk.CTkButton(self.sidebar, text="☀️ Light Mode" if ctk.get_appearance_mode()=="Dark" else "🌙 Dark Mode", 
@@ -76,12 +76,12 @@ class ASWindow:
         label_opts = {"text_color": ("gray20", "gray80"), "font": ("Segoe UI", 12, "bold")}
 
         # 1. GIAO DIỆN CRUD
-        ctk.CTkLabel(self.frame_crud, text="Quản lý Tài khoản & Học phần", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_crud, text="Quản lý tài khoản & học phần", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         form_frame = ctk.CTkFrame(self.frame_crud, fg_color=CARD_BG, corner_radius=15)
         form_frame.pack(fill="x", pady=(0, 20), ipadx=15, ipady=15)
         
         ctk.CTkLabel(form_frame, text="Mã ID:", **label_opts).grid(row=0, column=0, padx=(15, 10), pady=12, sticky="w"); self.entry_uid = ctk.CTkEntry(form_frame, width=180, **entry_opts); self.entry_uid.grid(row=0, column=1, padx=(0, 30))
-        ctk.CTkLabel(form_frame, text="Họ Tên:", **label_opts).grid(row=0, column=2, padx=(0, 10), pady=12, sticky="w"); self.entry_name = ctk.CTkEntry(form_frame, width=300, **entry_opts); self.entry_name.grid(row=0, column=3, padx=(0, 15))
+        ctk.CTkLabel(form_frame, text="Họ tên:", **label_opts).grid(row=0, column=2, padx=(0, 10), pady=12, sticky="w"); self.entry_name = ctk.CTkEntry(form_frame, width=300, **entry_opts); self.entry_name.grid(row=0, column=3, padx=(0, 15))
         ctk.CTkLabel(form_frame, text="Email:", **label_opts).grid(row=1, column=0, padx=(15, 10), pady=12, sticky="w"); self.entry_email = ctk.CTkEntry(form_frame, width=180, **entry_opts); self.entry_email.grid(row=1, column=1, padx=(0, 30))
         ctk.CTkLabel(form_frame, text="Mật khẩu:", **label_opts).grid(row=1, column=2, padx=(0, 10), pady=12, sticky="w"); self.entry_pwd = ctk.CTkEntry(form_frame, width=300, show="*", **entry_opts); self.entry_pwd.grid(row=1, column=3, padx=(0, 15))
         ctk.CTkLabel(form_frame, text="Vai trò:", **label_opts).grid(row=2, column=0, padx=(15, 10), pady=12, sticky="w"); self.cmb_role = ctk.CTkComboBox(form_frame, values=["Student", "Lecturer", "Staff"], width=180, **entry_opts); self.cmb_role.set("Student"); self.cmb_role.grid(row=2, column=1, padx=(0, 30))
@@ -96,9 +96,9 @@ class ASWindow:
         self.tabview.pack(fill="both", expand=True)
         self.tab_sv = self.tabview.add("👨‍🎓 Sinh viên"); self.tab_gv = self.tabview.add("👨‍🏫 Giảng viên"); self.tab_ad = self.tabview.add("📋 Giáo vụ"); self.tab_hp = self.tabview.add("📚 Học phần")
 
-        self.tree_sv = ttk.Treeview(self.tab_sv, columns=('uid', 'name', 'email', 'gpa'), show='headings'); self.tree_sv.heading('uid', text='MSSV'); self.tree_sv.heading('name', text='Họ và Tên'); self.tree_sv.heading('email', text='Email'); self.tree_sv.heading('gpa', text='GPA'); self.tree_sv.column('gpa', width=60, anchor='center'); self.tree_sv.pack(fill="both", expand=True, pady=(10, 0))
-        self.tree_gv = ttk.Treeview(self.tab_gv, columns=('uid', 'name', 'email'), show='headings'); self.tree_gv.heading('uid', text='MSGV'); self.tree_gv.heading('name', text='Họ và Tên'); self.tree_gv.heading('email', text='Email'); self.tree_gv.pack(fill="both", expand=True, pady=(10, 0))
-        self.tree_ad = ttk.Treeview(self.tab_ad, columns=('stt', 'uid', 'name', 'email'), show='headings'); self.tree_ad.heading('stt', text='STT'); self.tree_ad.heading('uid', text='Mã NV'); self.tree_ad.heading('name', text='Họ và Tên'); self.tree_ad.heading('email', text='Email'); self.tree_ad.column('stt', width=50, anchor='center'); self.tree_ad.pack(fill="both", expand=True, pady=(10, 0))
+        self.tree_sv = ttk.Treeview(self.tab_sv, columns=('uid', 'name', 'email', 'gpa'), show='headings'); self.tree_sv.heading('uid', text='MSSV'); self.tree_sv.heading('name', text='Họ và tên'); self.tree_sv.heading('email', text='Email'); self.tree_sv.heading('gpa', text='GPA'); self.tree_sv.column('gpa', width=60, anchor='center'); self.tree_sv.pack(fill="both", expand=True, pady=(10, 0))
+        self.tree_gv = ttk.Treeview(self.tab_gv, columns=('uid', 'name', 'email'), show='headings'); self.tree_gv.heading('uid', text='MSGV'); self.tree_gv.heading('name', text='Họ và tên'); self.tree_gv.heading('email', text='Email'); self.tree_gv.pack(fill="both", expand=True, pady=(10, 0))
+        self.tree_ad = ttk.Treeview(self.tab_ad, columns=('stt', 'uid', 'name', 'email'), show='headings'); self.tree_ad.heading('stt', text='STT'); self.tree_ad.heading('uid', text='Mã NV'); self.tree_ad.heading('name', text='Họ và tên'); self.tree_ad.heading('email', text='Email'); self.tree_ad.column('stt', width=50, anchor='center'); self.tree_ad.pack(fill="both", expand=True, pady=(10, 0))
         
         hp_tool = ctk.CTkFrame(self.tab_hp, fg_color="transparent"); hp_tool.pack(fill="x", pady=10)
         ctk.CTkButton(hp_tool, text="➕ Môn Mới", fg_color="#10B981", hover_color="#059669", command=self.open_add_course_popup, **action_btn).pack(side="left", padx=5)
@@ -126,11 +126,11 @@ class ASWindow:
         # 4. QUẢN LÝ HỌC VỤ
         ctk.CTkLabel(self.frame_management, text="Quản lý Cảnh cáo Học vụ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         t_f = ctk.CTkFrame(self.frame_management, fg_color="transparent"); t_f.pack(fill="x", pady=(0, 20))
-        ctk.CTkButton(t_f, text="Quét DS Nguy hiểm", fg_color="#6B7280", command=self.load_at_risk_students, **action_btn).pack(side="left", padx=(0, 10))
-        ctk.CTkButton(t_f, text="Cảnh Cáo", fg_color="#F59E0B", command=lambda: self.change_status("Cảnh cáo học vụ"), **action_btn).pack(side="left", padx=8)
-        ctk.CTkButton(t_f, text="Đình Chỉ", fg_color="#EF4444", command=lambda: self.change_status("Đình chỉ học"), **action_btn).pack(side="left", padx=8)
-        ctk.CTkButton(t_f, text="Xuất File Excel", fg_color="#10B981", command=self.export_excel, **action_btn).pack(side="right")
-        self.tree_mng = ttk.Treeview(self.frame_management, columns=('uid', 'name', 'gpa', 'att', 'status'), show='headings'); self.tree_mng.heading('uid', text='Mã SV'); self.tree_mng.heading('name', text='Họ và Tên'); self.tree_mng.heading('gpa', text='GPA'); self.tree_mng.heading('att', text='Chuyên cần'); self.tree_mng.heading('status', text='Trạng thái'); self.tree_mng.pack(fill="both", expand=True)
+        ctk.CTkButton(t_f, text="Quét danh sách cảnh báo ", fg_color="#6B7280", command=self.load_at_risk_students, **action_btn).pack(side="left", padx=(0, 10))
+        ctk.CTkButton(t_f, text="Cảnh cáo", fg_color="#F59E0B", command=lambda: self.change_status("Cảnh cáo học vụ"), **action_btn).pack(side="left", padx=8)
+        ctk.CTkButton(t_f, text="Đình chỉ", fg_color="#EF4444", command=lambda: self.change_status("Đình chỉ học"), **action_btn).pack(side="left", padx=8)
+        ctk.CTkButton(t_f, text="Xuất Excel", fg_color="#10B981", command=self.export_excel, **action_btn).pack(side="right")
+        self.tree_mng = ttk.Treeview(self.frame_management, columns=('uid', 'name', 'gpa', 'att', 'status'), show='headings'); self.tree_mng.heading('uid', text='Mã SV'); self.tree_mng.heading('name', text='Họ và tên'); self.tree_mng.heading('gpa', text='GPA'); self.tree_mng.heading('att', text='Chuyên cần'); self.tree_mng.heading('status', text='Trạng thái'); self.tree_mng.pack(fill="both", expand=True)
 
         self.apply_treeview_style(ctk.get_appearance_mode())
         self.show_crud()
@@ -206,10 +206,10 @@ class ASWindow:
         self.entry_uid.configure(state="normal"); self.entry_uid.delete(0, END); self.entry_name.delete(0, END); self.entry_email.delete(0, END); self.entry_pwd.delete(0, END); self.cmb_role.set("Student")
 
     def open_add_course_popup(self):
-        p = ctk.CTkToplevel(self.window); p.title("Thêm Học Phần"); p.geometry("450x450"); p.attributes("-topmost", True); p.configure(fg_color=APP_BG)
+        p = ctk.CTkToplevel(self.window); p.title("Thêm học phần"); p.geometry("450x450"); p.attributes("-topmost", True); p.configure(fg_color=APP_BG)
         ctk.CTkLabel(p, text="MÔN HỌC MỚI", font=("Segoe UI", 20, "bold"), text_color="#10B981").pack(pady=25)
         opts = {"width": 320, "height": 45, "font": ("Segoe UI", 13), "corner_radius": 8, "border_width": 0, "fg_color": CARD_BG}
-        e_cid = ctk.CTkEntry(p, placeholder_text="Mã Học phần (VD: CSE101)", **opts); e_cid.pack(pady=10)
+        e_cid = ctk.CTkEntry(p, placeholder_text="Mã học phần (VD: CSE101)", **opts); e_cid.pack(pady=10)
         e_name = ctk.CTkEntry(p, placeholder_text="Tên môn học", **opts); e_name.pack(pady=10)
         e_creds = ctk.CTkEntry(p, placeholder_text="Số tín chỉ", **opts); e_creds.pack(pady=10)
         def submit():
@@ -224,8 +224,8 @@ class ASWindow:
         p = ctk.CTkToplevel(self.window); p.title("Mở Lớp Học Phần"); p.geometry("450x500"); p.attributes("-topmost", True); p.configure(fg_color=APP_BG)
         ctk.CTkLabel(p, text="MỞ LỚP HỌC", font=("Segoe UI", 20, "bold"), text_color="#06B6D4").pack(pady=25)
         opts = {"width": 320, "height": 45, "font": ("Segoe UI", 13), "corner_radius": 8, "border_width": 0, "fg_color": CARD_BG}
-        e_cls = ctk.CTkEntry(p, placeholder_text="Mã Lớp (VD: CSE3011_C3)", **opts); e_cls.pack(pady=10)
-        e_cid = ctk.CTkEntry(p, placeholder_text="Mã Học phần (VD: CSE3011)", **opts); e_cid.pack(pady=10)
+        e_cls = ctk.CTkEntry(p, placeholder_text="Mã lớp (VD: CSE3011_C3)", **opts); e_cls.pack(pady=10)
+        e_cid = ctk.CTkEntry(p, placeholder_text="Mã học phần (VD: CSE3011)", **opts); e_cid.pack(pady=10)
         e_lec = ctk.CTkEntry(p, placeholder_text="MSGV phụ trách (VD: VJU001)", **opts); e_lec.pack(pady=10)
         e_cap = ctk.CTkEntry(p, placeholder_text="Sĩ số tối đa", **opts); e_cap.insert(0, "40"); e_cap.pack(pady=10)
         def submit():
@@ -246,7 +246,7 @@ class ASWindow:
             self.staff_ctr.delete_course(cid); self.load_users()
 
     def delete_class_ui(self):
-        cid = simpledialog.askstring("Xóa lớp", "Nhập Mã Lớp cần xóa:")
+        cid = simpledialog.askstring("Xóa lớp", "Nhập mã lớp cần xóa:")
         if cid and messagebox.askyesno("Xác nhận", f"Xóa lớp '{cid}'?"):
             self.staff_ctr.delete_course_class(cid.strip()); self.load_users()
 
@@ -291,7 +291,7 @@ class ASWindow:
             ax.pie(sizes, explode=explode, labels=labels, colors=['#EF4444', '#3B82F6', '#10B981', '#F59E0B'], 
                    autopct='%1.1f%%', startangle=140, shadow=True, 
                    textprops={'color':"white" if is_dark else "black", 'fontweight': 'bold'})
-            ax.set_title("Tỉ lệ Học lực Toàn khóa", pad=20, fontweight='bold', color="white" if is_dark else "#111827")
+            ax.set_title("Thống kê học lực toàn khóa", pad=20, fontweight='bold', color="white" if is_dark else "#111827")
             
         canvas = FigureCanvasTkAgg(fig, master=self.chart_frame) 
         canvas.draw()

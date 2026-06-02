@@ -14,7 +14,7 @@ class LecturerWindow:
         self.lecturer_ctr = LecturerController(main_controller)
         self.window = ctk.CTk()
         self.window.geometry("1150x750")
-        self.window.title("BCSE - Giảng Viên")
+        self.window.title("BCSE - GIẢNG VIÊN")
         self.window.configure(fg_color=APP_BG)
 
         # SIDEBAR
@@ -26,10 +26,10 @@ class LecturerWindow:
         btn_opts = {"fg_color": "transparent", "text_color": ("gray20", "gray80"), "hover_color": ("#E5E7EB", "#2C2C2E"), 
                     "font": ("Segoe UI", 14, "bold"), "anchor": "w", "height": 45, "corner_radius": 12}
         
-        ctk.CTkButton(self.sidebar, text="📌 Lịch Giảng Dạy", command=self.show_dashboard, **btn_opts).pack(fill="x", padx=15, pady=5)
-        ctk.CTkButton(self.sidebar, text="⏰ Mở Điểm Danh", command=self.show_attendance, **btn_opts).pack(fill="x", padx=15, pady=5)
-        ctk.CTkButton(self.sidebar, text="💯 Quản lý Điểm", command=self.show_grade, **btn_opts).pack(fill="x", padx=15, pady=5)
-        ctk.CTkButton(self.sidebar, text="📝 Track Bài Tập", command=self.show_assignment, **btn_opts).pack(fill="x", padx=15, pady=5)
+        ctk.CTkButton(self.sidebar, text="📌 Lịch giảng dạy", command=self.show_dashboard, **btn_opts).pack(fill="x", padx=15, pady=5)
+        ctk.CTkButton(self.sidebar, text="⏰ Mở điểm danh", command=self.show_attendance, **btn_opts).pack(fill="x", padx=15, pady=5)
+        ctk.CTkButton(self.sidebar, text="💯 Quản lý điểm", command=self.show_grade, **btn_opts).pack(fill="x", padx=15, pady=5)
+        ctk.CTkButton(self.sidebar, text="📝 Kiểm tra bài tập", command=self.show_assignment, **btn_opts).pack(fill="x", padx=15, pady=5)
 
         # NÚT THEME
         self.btn_theme = ctk.CTkButton(self.sidebar, text="☀️ Light Mode" if ctk.get_appearance_mode()=="Dark" else "🌙 Dark Mode", 
@@ -62,13 +62,13 @@ class LecturerWindow:
 
         # 1. DASHBOARD
         self.frame_dashboard = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        ctk.CTkLabel(self.frame_dashboard, text="Lớp Học Đang Phụ Trách", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_dashboard, text="Lớp học đang phụ trách", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         self.class_listbox = ctk.CTkTextbox(self.frame_dashboard, font=("Segoe UI", 15), corner_radius=15, fg_color=CARD_BG, padx=20, pady=20)
         self.class_listbox.pack(fill="both", expand=True)
 
         # 2. ĐIỂM DANH
         self.frame_attendance = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        ctk.CTkLabel(self.frame_attendance, text="Phiên Điểm Danh", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_attendance, text="Phiên điểm danh", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         form_att = ctk.CTkFrame(self.frame_attendance, corner_radius=15, fg_color=CARD_BG); form_att.pack(fill="x", ipadx=20, ipady=25)
         
         self.entry_att_class = ctk.CTkEntry(form_att, placeholder_text="Mã lớp học phần", width=320, **entry_opts); self.entry_att_class.pack(pady=10)
@@ -85,7 +85,7 @@ class LecturerWindow:
 
         # 3. NHẬP ĐIỂM (CẬP NHẬT CÓ TREEVIEW)
         self.frame_grade = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        ctk.CTkLabel(self.frame_grade, text="Cập nhật Điểm & Khóa sổ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_grade, text="Cập nhật điểm ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         
         form_gr = ctk.CTkFrame(self.frame_grade, corner_radius=15, fg_color=CARD_BG); form_gr.pack(fill="x", ipadx=15, ipady=20)
         self.entry_grade_class = ctk.CTkEntry(form_gr, placeholder_text="Mã Lớp", width=140, **entry_opts); self.entry_grade_class.grid(row=0, column=0, padx=10, pady=10)
@@ -97,13 +97,13 @@ class LecturerWindow:
 
         act_gr_f = ctk.CTkFrame(self.frame_grade, fg_color="transparent"); act_gr_f.pack(anchor="w", pady=(10, 20))
         # 💡 Bổ sung nút Tải Bảng Điểm
-        ctk.CTkButton(act_gr_f, text="🔄 Tải Bảng Điểm", fg_color="#6B7280", hover_color="#4B5563", command=self.load_class_grades, **action_btn).pack(side="left", padx=(0, 15))
-        ctk.CTkButton(act_gr_f, text="Tự động tính Điểm", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.calculate_final, **action_btn).pack(side="left", padx=(0, 15))
-        ctk.CTkButton(act_gr_f, text="Khóa điểm & Cập nhật GPA", fg_color="#EF4444", hover_color="#DC2626", command=self.lock_grades, **action_btn).pack(side="left")
+        ctk.CTkButton(act_gr_f, text="Tải bảng điểm", fg_color="#6B7280", hover_color="#4B5563", command=self.load_class_grades, **action_btn).pack(side="left", padx=(0, 15))
+        ctk.CTkButton(act_gr_f, text="Tự động tính điểm", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.calculate_final, **action_btn).pack(side="left", padx=(0, 15))
+        ctk.CTkButton(act_gr_f, text="Khóa & Cập nhật GPA", fg_color="#EF4444", hover_color="#DC2626", command=self.lock_grades, **action_btn).pack(side="left")
 
         # 💡 Bổ sung Bảng dữ liệu Điểm
         self.tree_gr = ttk.Treeview(self.frame_grade, columns=('uid', 'name', 'cc', 'gk', 'ck', 'tong', 'he4'), show='headings')
-        self.tree_gr.heading('uid', text='Mã SV'); self.tree_gr.heading('name', text='Họ và Tên')
+        self.tree_gr.heading('uid', text='Mã SV'); self.tree_gr.heading('name', text='Họ và tên')
         self.tree_gr.heading('cc', text='Chuyên cần'); self.tree_gr.heading('gk', text='Giữa kỳ'); self.tree_gr.heading('ck', text='Cuối kỳ')
         self.tree_gr.heading('tong', text='Tổng (10)'); self.tree_gr.heading('he4', text='Hệ 4')
         self.tree_gr.column('cc', width=90, anchor='center'); self.tree_gr.column('gk', width=90, anchor='center'); self.tree_gr.column('ck', width=90, anchor='center')
@@ -113,14 +113,14 @@ class LecturerWindow:
 
         # 4. TRACK BÀI TẬP
         self.frame_assignment = ctk.CTkFrame(self.main_frame, fg_color="transparent")
-        ctk.CTkLabel(self.frame_assignment, text="Phát Bài Tập", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
+        ctk.CTkLabel(self.frame_assignment, text="Phát bài tập", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         tool_hw = ctk.CTkFrame(self.frame_assignment, fg_color="transparent"); tool_hw.pack(fill="x", pady=10)
         self.entry_hw_class = ctk.CTkEntry(tool_hw, placeholder_text="Mã lớp", width=180, **entry_opts); self.entry_hw_class.pack(side="left", padx=5)
         ctk.CTkButton(tool_hw, text="Giao bài mới", fg_color="#10B981", hover_color="#059669", **action_btn, command=self.create_hw).pack(side="left", padx=10)
         ctk.CTkButton(tool_hw, text="Tải danh sách", fg_color="#6B7280", hover_color="#4B5563", **action_btn, command=self.load_assignments).pack(side="left", padx=10)
         ctk.CTkButton(tool_hw, text="Nhắc nhở", fg_color="#F59E0B", hover_color="#D97706", **action_btn, command=self.send_reminder).pack(side="right", padx=5)
 
-        self.tree_hw = ttk.Treeview(self.frame_assignment, columns=('uid', 'name', 'status', 'time'), show='headings'); self.tree_hw.heading('uid', text='Mã SV'); self.tree_hw.heading('name', text='Họ và Tên'); self.tree_hw.heading('status', text='Trạng thái'); self.tree_hw.heading('time', text='Thời gian nộp')
+        self.tree_hw = ttk.Treeview(self.frame_assignment, columns=('uid', 'name', 'status', 'time'), show='headings'); self.tree_hw.heading('uid', text='Mã SV'); self.tree_hw.heading('name', text='Họ và tên'); self.tree_hw.heading('status', text='Trạng thái'); self.tree_hw.heading('time', text='Thời gian nộp')
         self.tree_hw.pack(fill="both", expand=True, pady=10)
 
         self.apply_treeview_style(ctk.get_appearance_mode())
@@ -157,7 +157,7 @@ class LecturerWindow:
         self.hide_all_frames(); self.frame_dashboard.pack(fill="both", expand=True); self.class_listbox.configure(state="normal"); self.class_listbox.delete("1.0", END)
         classes = self.lecturer_ctr.get_assigned_classes()
         if classes:
-            for c in classes: self.class_listbox.insert(END, f"📌 Mã Lớp: {c['class_id']}  |  Môn: {c['course_id']}\n\n")
+            for c in classes: self.class_listbox.insert(END, f"📌 Mã lớp: {c['class_id']}  |  Môn: {c['course_id']}\n\n")
         else: self.class_listbox.insert(END, "Chưa được phân công.")
         self.class_listbox.configure(state="disabled")
 
@@ -179,7 +179,7 @@ class LecturerWindow:
     def load_class_grades(self):
         cid = self.entry_grade_class.get().strip()
         if not cid:
-            messagebox.showwarning("Thiếu thông tin", "Vui lòng nhập Mã Lớp để xem điểm!")
+            messagebox.showwarning("Thiếu thông tin", "Vui lòng nhập mã lớp để xem điểm!")
             return
             
         for row in self.tree_gr.get_children(): self.tree_gr.delete(row)

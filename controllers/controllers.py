@@ -19,10 +19,10 @@ class MainController:
             user = db.query(User).filter(User.email == email).first()
             # Kiểm tra Hash hợp lệ
             if not user or user.password != hash_pwd(password, email):
-                return False, "Email hoặc Mật khẩu không chính xác", ""
+                return False, "Email hoặc mật khẩu không chính xác", ""
             
             if user.role == "Student" and user.academic_status == "Đình chỉ học":
-                return False, "Tài khoản đã bị ĐÌNH CHỈ HỌC VỤ. Vui lòng liên hệ Giáo vụ!", ""
+                return False, "Tài khoản đã bị ĐÌNH CHỈ . Vui lòng liên hệ giáo vụ!", ""
                 
             self.current_user = user
             return True, f"Chào mừng {user.name} quay trở lại!", user.role
@@ -66,17 +66,17 @@ class StudentController:
 
             current_enrolled = db.query(Enrollment).filter(Enrollment.class_id == class_id).count()
             if current_enrolled >= course_class.max_capacity:
-                return False, "Bị chặn: Lớp đã đạt giới hạn sĩ số!"
+                return False, "Lớp đã đạt giới hạn sĩ số!"
 
             course = db.query(Course).filter(Course.course_id == course_class.course_id).first()
             
             passed = db.query(CompletedCourse).filter(CompletedCourse.student_id == student_id, CompletedCourse.course_id == course.course_id, CompletedCourse.grade_letter != 'F').first()
-            if passed: return False, f"Bị chặn: Bạn đã học qua và ĐỖ môn này rồi ({passed.grade_letter})!"
+            if passed: return False, f"Bạn đã học qua và đạt môn này rồi ({passed.grade_letter})!"
 
             if course.prerequisite_id:
                 completed = db.query(CompletedCourse).filter(CompletedCourse.student_id == student_id, CompletedCourse.course_id == course.prerequisite_id).first()
                 if not completed or completed.grade_letter == 'F':
-                    return False, f"Bị chặn: Chưa hoàn thành môn tiên quyết {course.prerequisite_id}!"
+                    return False, f"Chưa hoàn thành môn tiên quyết {course.prerequisite_id}!"
 
             if db.query(Enrollment).filter_by(class_id=class_id, student_id=student_id).first():
                 return False, "Bạn đã đăng ký lớp học phần này rồi."
@@ -101,7 +101,7 @@ class StudentController:
             if not enrollment: return False, "Bạn không có trong danh sách."
             
             if enrollment.last_otp == code:
-                return False, "⛔ Bạn ĐÃ ĐIỂM DANH trong phiên này rồi! Không thể gian lận."
+                return False, "⛔ Bạn ĐÃ ĐIỂM DANH trong phiên này!"
 
             enrollment.chuyen_can = min(10.0, enrollment.chuyen_can + 1.0)
             enrollment.last_otp = code
@@ -131,7 +131,7 @@ class StudentController:
         try:
             hw = db.query(Assignment).filter(Assignment.id == assignment_id, Assignment.student_id == self.main_ctrl.current_user.user_id).first()
             if not hw: return False, "Không tìm thấy bài tập hoặc bạn không có quyền."
-            if hw.status == "Đã nộp": return False, "Bạn đã nộp bài này rồi!"
+            if hw.status == "Đã nộp": return False, "Bạn đã nộp bài này !"
             hw.status = "Đã nộp"
             hw.submit_time = datetime.now().strftime("%d/%m/%Y %H:%M")
             db.commit()
@@ -256,7 +256,7 @@ class LecturerController:
                     
                     count += 1
             db.commit()
-            return True, f"🔒 Đã khóa sổ và chuẩn hóa GPA cho {count} sinh viên!"
+            return True, f"Đã khóa sổ và tính GPA cho {count} sinh viên!"
         except Exception as e:
             db.rollback()
             return False, f"Lỗi khóa điểm: {str(e)}"
@@ -270,7 +270,7 @@ class LecturerController:
             if not course_class: return False, "Bạn không phụ trách lớp này."
             
             exist_hw = db.query(Assignment).filter(Assignment.class_id == class_id).first()
-            if exist_hw: return False, f"⛔ Lớp {class_id} ĐÃ ĐƯỢC GIAO BÀI rồi! Không thể giao trùng lặp."
+            if exist_hw: return False, f"⛔ Lớp {class_id} đã được giao bài! Không thể giao trùng lặp."
             
             enrollments = db.query(Enrollment).filter(Enrollment.class_id == class_id).all()
             if not enrollments: return False, "Lớp chưa có sinh viên nào đăng ký!"
@@ -388,7 +388,7 @@ class AcademicStaffController:
                 writer = csv.writer(file)
                 writer.writerow(["Mã SV", "Họ Tên", "Email", "GPA", "ĐRL", "Tín chỉ", "Chuyên cần", "Trạng thái"])
                 for s in students: writer.writerow([s.user_id, s.name, s.email, s.gpa, s.rls, s.credits, s.attendance_rate, s.academic_status])
-            return True, "Xuất báo cáo Excel thành công!"
+            return True, "Xuất Excel thành công!"
         finally:
             db.close()
     
@@ -405,7 +405,7 @@ class AcademicStaffController:
     def create_user(self, uid, name, email, pwd, role) -> tuple[bool, str]:
         # VÁ RÀNG BUỘC: Mật khẩu chính xác 8 ký tự
         if len(pwd) != 8:
-            return False, "Quy tắc nghiệp vụ: Mật khẩu phải có ĐÚNG 8 ký tự!"
+            return False, "Mật khẩu phải có đúng 8 ký tự!"
             
         db = SessionLocal()
         try:
@@ -421,7 +421,7 @@ class AcademicStaffController:
     def update_user(self, uid, name, email, pwd, role) -> tuple[bool, str]:
         # VÁ RÀNG BUỘC: Nếu có sửa pass thì pass mới cũng phải đúng 8 ký tự
         if pwd != "******" and len(pwd) != 8:
-            return False, "Quy tắc nghiệp vụ: Mật khẩu phải có ĐÚNG 8 ký tự!"
+            return False, "Mật khẩu phải có đúng 8 ký tự!"
             
         db = SessionLocal()
         try:
@@ -496,7 +496,7 @@ class AcademicStaffController:
             # 3. Kiểm tra xem Giảng viên có tồn tại và đúng Role không
             lecturer = db.query(User).filter(User.user_id == lecturer_id, User.role == 'Lecturer').first()
             if not lecturer:
-                return False, f"Lỗi: Không tìm thấy Giảng viên có mã '{lecturer_id}'!"
+                return False, f"Lỗi: Không tìm thấy giảng viên có mã '{lecturer_id}'!"
 
             # 4. Thêm Lớp mới
             new_class = CourseClass(
@@ -523,7 +523,7 @@ class AcademicStaffController:
             # CSDL sẽ tự động kích hoạt Cascade Delete dọn dẹp các bảng phụ
             db.delete(course)
             db.commit()
-            return True, f"Đã xóa vĩnh viễn Học phần '{course_id}' và toàn bộ dữ liệu liên quan!"
+            return True, f"Đã xóa vĩnh viễn học phần '{course_id}' và toàn bộ dữ liệu liên quan!"
         except Exception as e:
             db.rollback()
             return False, f"Lỗi CSDL: {str(e)}"
@@ -538,7 +538,7 @@ class AcademicStaffController:
             
             db.delete(course_class)
             db.commit()
-            return True, f"Đã xóa Lớp '{class_id}' và danh sách đăng ký của sinh viên lớp này!"
+            return True, f"Đã xóa lớp '{class_id}' và danh sách đăng ký của sinh viên lớp này!"
         except Exception as e:
             db.rollback()
             return False, f"Lỗi CSDL: {str(e)}"
