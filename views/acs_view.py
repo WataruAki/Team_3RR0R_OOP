@@ -36,12 +36,10 @@ class ASWindow:
         ctk.CTkButton(self.sidebar, text="📊  Thống kê", command=self.show_statistics, **btn_opts).pack(fill="x", padx=15, pady=5)
         ctk.CTkButton(self.sidebar, text="⚠️  Quản lý học vụ", command=self.show_management, **btn_opts).pack(fill="x", padx=15, pady=5)
 
-        # NÚT THEME
         self.btn_theme = ctk.CTkButton(self.sidebar, text="☀️ Light Mode" if ctk.get_appearance_mode()=="Dark" else "🌙 Dark Mode", 
                                        command=self.toggle_theme, fg_color=("gray85", "#2C2C2E"), text_color=("black", "white"), font=("Segoe UI", 12, "bold"), corner_radius=20)
         self.btn_theme.pack(side="bottom", fill="x", padx=20, pady=(0, 25))
 
-        # PROFILE BADGE
         user = main_controller.current_user
         u_name = getattr(user, 'name', 'Trần Thị Giáo Vụ')
         u_id = getattr(user, 'user_id', '001')
@@ -59,9 +57,6 @@ class ASWindow:
         ctk.CTkLabel(info_f, text=u_name, font=("Segoe UI", 13, "bold"), text_color=("black", "white"), anchor="w").pack(fill="x")
         ctk.CTkLabel(info_f, text=f"UID: {u_id}", font=("Consolas", 11), text_color=("gray40", "gray60"), anchor="w").pack(fill="x")
 
-        # ==========================================
-        # KHU VỰC MAIN CONTAINER 
-        # ==========================================
         self.main_frame = ctk.CTkFrame(self.window, fg_color="transparent")
         self.main_frame.pack(side="left", fill="both", expand=True, padx=25, pady=25)
 
@@ -70,12 +65,10 @@ class ASWindow:
         self.frame_statistics = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         self.frame_management = ctk.CTkFrame(self.main_frame, fg_color="transparent")
         
-        # Cấu hình UI xịn xò
         action_btn = {"font": ("Segoe UI", 13, "bold"), "height": 40, "corner_radius": 20, "cursor": "hand2"}
         entry_opts = {"height": 40, "font": ("Segoe UI", 13), "border_width": 0, "corner_radius": 8, "fg_color": ("#F3F4F6", "#2C2C2E")}
         label_opts = {"text_color": ("gray20", "gray80"), "font": ("Segoe UI", 12, "bold")}
 
-        # 1. GIAO DIỆN CRUD
         ctk.CTkLabel(self.frame_crud, text="Quản lý chung", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         form_frame = ctk.CTkFrame(self.frame_crud, fg_color=CARD_BG, corner_radius=15)
         form_frame.pack(fill="x", pady=(0, 20), ipadx=15, ipady=15)
@@ -108,7 +101,6 @@ class ASWindow:
         self.tree_hp = ttk.Treeview(self.tab_hp, columns=('stt', 'cid', 'name', 'creds', 'classes'), show='headings'); self.tree_hp.heading('stt', text='STT'); self.tree_hp.heading('cid', text='Mã Học phần'); self.tree_hp.heading('name', text='Tên môn học'); self.tree_hp.heading('creds', text='Tín chỉ'); self.tree_hp.heading('classes', text='Các lớp đang mở'); self.tree_hp.column('stt', width=50, anchor='center'); self.tree_hp.column('creds', width=80, anchor='center'); self.tree_hp.pack(fill="both", expand=True, pady=(10, 0))
         for t in [self.tree_sv, self.tree_gv, self.tree_ad, self.tree_hp]: t.bind("<ButtonRelease-1>", self.select_user)
 
-        # 2. XÉT HỌC BỔNG
         ctk.CTkLabel(self.frame_scholarship, text="Xét duyệt học bổng", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         f_in = ctk.CTkFrame(self.frame_scholarship, fg_color=CARD_BG, corner_radius=15); f_in.pack(fill="x", pady=(0, 20), ipadx=15, ipady=15)
         ctk.CTkLabel(f_in, text="Số lượng :", font=("Segoe UI", 14, "bold"), text_color=("gray20", "gray80")).pack(side="left", padx=15)
@@ -116,14 +108,12 @@ class ASWindow:
         ctk.CTkButton(f_in, text="Bắt đầu", fg_color="#3B82F6", hover_color="#2563EB", command=self.run_scholarship, **action_btn).pack(side="left", padx=15)
         self.tree_hb = ttk.Treeview(self.frame_scholarship, columns=('uid', 'name', 'score'), show='headings'); self.tree_hb.heading('uid', text='Mã SV'); self.tree_hb.heading('name', text='Họ và tên'); self.tree_hb.heading('score', text='Điểm xét '); self.tree_hb.pack(fill="both", expand=True)
 
-        # 3. THỐNG KÊ GPA (CHART CÓ BÓNG ĐỔ)
         ctk.CTkLabel(self.frame_statistics, text="Thống kê GPA ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         ctk.CTkButton(self.frame_statistics, text=" Vẽ biểu đồ", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.load_data, **action_btn).pack(anchor="w", pady=(0, 20))
         self.content_frame = ctk.CTkFrame(self.frame_statistics, fg_color="transparent"); self.content_frame.pack(fill="both", expand=True)
         self.tree_stat = ttk.Treeview(self.content_frame, columns=('loai', 'so_luong'), show='headings'); self.tree_stat.heading('loai', text='Xếp loại'); self.tree_stat.heading('so_luong', text='Số sinh viên'); self.tree_stat.pack(side="left", fill="y", padx=(0, 25))
         self.chart_frame = ctk.CTkFrame(self.content_frame, fg_color=CARD_BG, corner_radius=15); self.chart_frame.pack(side="left", fill="both", expand=True)
 
-        # 4. QUẢN LÝ HỌC VỤ
         ctk.CTkLabel(self.frame_management, text="Quản lý cảnh cáo học vụ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         t_f = ctk.CTkFrame(self.frame_management, fg_color="transparent"); t_f.pack(fill="x", pady=(0, 20))
         ctk.CTkButton(t_f, text="Quét danh sách cảnh báo ", fg_color="#6B7280", command=self.load_at_risk_students, **action_btn).pack(side="left", padx=(0, 10))
@@ -155,7 +145,6 @@ class ASWindow:
             style.map('Treeview', background=[('selected', '#DBEAFE')])
             style.configure("Treeview.Heading", background="#F9FAFB", foreground="#6B7280", font=("Segoe UI", 12, "bold"), borderwidth=0, padding=12)
 
-    # --- ĐIỀU HƯỚNG VÀ LOAD DATA ---
     def hide_all(self): self.frame_crud.pack_forget(); self.frame_scholarship.pack_forget(); self.frame_statistics.pack_forget(); self.frame_management.pack_forget()
     def show_crud(self): self.hide_all(); self.frame_crud.pack(fill="both", expand=True); self.load_users()
     def show_scholarship(self): self.hide_all(); self.frame_scholarship.pack(fill="both", expand=True)
