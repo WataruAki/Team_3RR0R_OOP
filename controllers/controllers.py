@@ -226,10 +226,13 @@ class LecturerController:
             enrollments = db.query(Enrollment).filter(Enrollment.class_id == class_id).all()
             if not enrollments: return False, "Lớp chưa có sinh viên."
             for e in enrollments:
-                tong = (e.chuyen_can * 0.1) + (e.giua_ky * 0.2) + (e.cuoi_ky * 0.7)
+                tong = (e.chuyen_can * 0.1) + (e.giua_ky * 0.3) + (e.cuoi_ky * 0.6)
                 e.diem_tong_ket = round(tong, 2)
-                if tong >= 8.5: e.diem_he_4 = 4.0
-                elif tong >= 7.0: e.diem_he_4 = 3.0
+                if tong >= 9.0: e.diem_he_4 = 4.0
+                elif tong>=8.5: e.diem_he_4=3.7
+                elif tong>=8.0: e.diem_he_4=3.5
+                elif tong>=7.0: e.diem_he_4=3.0
+                elif tong >= 6.5: e.diem_he_4 = 2.5
                 elif tong >= 5.5: e.diem_he_4 = 2.0
                 elif tong >= 4.0: e.diem_he_4 = 1.0
                 else: e.diem_he_4 = 0.0
@@ -258,7 +261,7 @@ class LecturerController:
                 if not getattr(e, 'is_locked', False): 
                     e.is_locked = True
                     
-                    letter = "A" if he4 == 4.0 else ("B" if he4 == 3.0 else ("C" if he4 == 2.0 else ("D" if he4 == 1.0 else "F")))
+                    letter = "A+" if he4 == 4.0 else ("A" if he4 == 3.7 else ("B+" if he4 == 3.5 else ("B" if he4 == 3.0 else ("C+" if he4 == 2.5 else ("C" if he4 == 2.0 else ("D+" if he4 == 1.5 else ("D" if he4 == 1.0 else "F")))))))
                     
                     passed_record = db.query(CompletedCourse).filter_by(student_id=e.student_id, course_id=course_class.course_id).first()
                     if not passed_record:
