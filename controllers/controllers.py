@@ -4,6 +4,9 @@ from datetime import datetime
 import hashlib
 import binascii
 
+# 💡 BIẾN GLOBAL LƯU TRỮ PHIÊN ĐIỂM DANH TRÊN RAM (Anti-Cheat & Live List)
+ATTENDANCE_SESSIONS = {}
+
 def hash_pwd(password: str, salt: str) -> str:
     dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
     return binascii.hexlify(dk).decode('utf-8')
@@ -89,10 +92,18 @@ class StudentController:
         if not self.main_ctrl.current_user: return False, "Lỗi: Chưa đăng nhập."
         db = SessionLocal()
         try:
-            student_id = self.main_ctrl.current_user.user_id
+            student = self.main_ctrl.current_user
+            student_id = student.user_id
+            
             course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id).first()
             if not course_class or course_class.attendance_code != code:
                 return False, "Mã không hợp lệ hoặc phiên đã đóng."
+
+            # 💡 KIỂM TRA GIỚI HẠN SLOT (ANTI-CHEAT)
+            session = ATTENDANCE_SESSIONS.get(class_id)
+            if session and session['code'] == code:
+                if len(session['checked_in']) >= session['limit']:
+                    return False, "⛔ Đã hết lượt điểm danh (Đạt giới hạn sĩ số)!"
 
             enrollment = db.query(Enrollment).filter_by(class_id=class_id, student_id=student_id).first()
             if not enrollment: return False, "Bạn không có trong danh sách."
@@ -103,6 +114,16 @@ class StudentController:
             enrollment.chuyen_can = min(10.0, enrollment.chuyen_can + 1.0)
             enrollment.last_otp = code
             db.commit()
+
+            # 💡 Thêm vào Live List cho Giảng viên xem
+            if session:
+                if not any(s['uid'] == student_id for s in session['checked_in']):
+                    session['checked_in'].append({
+                        "uid": student_id,
+                        "name": student.name,
+                        "time": datetime.now().strftime("%H:%M:%S")
+                    })
+
             return True, "Xác nhận điểm danh thành công!"
         finally:
             db.close()
@@ -145,9 +166,13 @@ class StudentController:
                 tong = e.diem_tong_ket
                 chu = "---"
                 if tong is not None:
-                    if tong >= 8.5: chu = "A"
+                    if tong >= 9.0: chu = "A+"
+                    elif tong >= 8.5: chu = "A"
+                    elif tong >= 8.0: chu = "B+"
                     elif tong >= 7.0: chu = "B"
+                    elif tong >= 6.5: chu = "C+"
                     elif tong >= 5.5: chu = "C"
+                    elif tong >= 5.0: chu = "D+"
                     elif tong >= 4.0: chu = "D"
                     else: chu = "F"
                 
@@ -164,6 +189,7 @@ class StudentController:
         finally:
             db.close()
 
+
 class LecturerController:
     def __init__(self, main_controller: MainController):
         self.main_ctrl = main_controller
@@ -177,14 +203,22 @@ class LecturerController:
         finally:
             db.close()
 
-    def open_attendance(self, class_id: str, token_code: str) -> tuple[bool, str]:
+    # 💡 CẬP NHẬT HÀM MỞ PHIÊN: Thêm biến limit
+    def open_attendance(self, class_id: str, token_code: str, limit: int) -> tuple[bool, str]:
         db = SessionLocal()
         try:
             course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id, CourseClass.lecturer_id == self.main_ctrl.current_user.user_id).first()
             if not course_class: return False, "Bạn không phụ trách lớp này."
             course_class.attendance_code = token_code
             db.commit()
-            return True, f"Mở phiên điểm danh lớp {class_id} với mã: {token_code}"
+            
+            # Lưu vào RAM
+            ATTENDANCE_SESSIONS[class_id] = {
+                "code": token_code,
+                "limit": limit,
+                "checked_in": []
+            }
+            return True, f"Đã mở phiên lớp {class_id} (Giới hạn: {limit} slot)"
         finally:
             db.close()
 
@@ -195,9 +229,19 @@ class LecturerController:
             if not course_class: return False, "Lớp không tồn tại."
             course_class.attendance_code = None
             db.commit()
+            
+            # Xóa khỏi RAM
+            if class_id in ATTENDANCE_SESSIONS:
+                del ATTENDANCE_SESSIONS[class_id]
+                
             return True, f"Đã đóng phiên điểm danh lớp {class_id}."
         finally:
             db.close()
+
+    # 💡 LẤY DANH SÁCH TỪ RAM ĐỂ HIỂN THỊ LÊN BẢNG
+    def get_live_attendance(self, class_id: str) -> list:
+        session = ATTENDANCE_SESSIONS.get(class_id)
+        return session['checked_in'] if session else []
 
     def input_grade(self, class_id: str, student_id: str, score_type: str, value: float) -> tuple[bool, str]:
         if not (0.0 <= value <= 10.0): return False, "Lỗi: Điểm số phải từ 0.0 đến 10.0!"
@@ -261,7 +305,7 @@ class LecturerController:
                 if not getattr(e, 'is_locked', False): 
                     e.is_locked = True
                     
-                    letter = "A+" if he4 == 4.0 else ("A" if he4 == 3.7 else ("B+" if he4 == 3.5 else ("B" if he4 == 3.0 else ("C+" if he4 == 2.5 else ("C" if he4 == 2.0 else ("D+" if he4 == 1.5 else ("D" if he4 == 1.0 else "F")))))))
+                    letter = "A+" if he4 == 4.0 else ("A" if he4 >= 3.7 else ("B+" if he4 >= 3.5 else ("B" if he4 >= 3.0 else ("C+" if he4 >= 2.5 else ("C" if he4 >= 2.0 else ("D+" if he4 >= 1.5 else ("D" if he4 >= 1.0 else "F")))))))
                     
                     passed_record = db.query(CompletedCourse).filter_by(student_id=e.student_id, course_id=course_class.course_id).first()
                     if not passed_record:
@@ -351,9 +395,13 @@ class LecturerController:
                     tong = getattr(e, 'diem_tong_ket', getattr(e, 'tong_ket', getattr(e, 'tong', None)))
                     chu = "---"
                     if tong is not None:
-                        if tong >= 8.5: chu = "A"
+                        if tong >= 9.0: chu = "A+" 
+                        elif tong >= 8.5: chu = "A"
+                        elif tong >= 8.0: chu = "B+" 
                         elif tong >= 7.0: chu = "B"
+                        elif tong >= 6.5: chu = "C+"
                         elif tong >= 5.5: chu = "C"
+                        elif tong >= 5.0: chu = "D+"
                         elif tong >= 4.0: chu = "D"
                         else: chu = "F"
                         

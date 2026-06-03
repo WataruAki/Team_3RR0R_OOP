@@ -110,7 +110,8 @@ class ASWindow:
 
         ctk.CTkLabel(self.frame_statistics, text="Thống kê GPA ", font=("Segoe UI", 26, "bold"), text_color=("black", "white")).pack(anchor="w", pady=(0, 20))
         ctk.CTkButton(self.frame_statistics, text=" Vẽ biểu đồ", fg_color="#8B5CF6", hover_color="#7C3AED", command=self.load_data, **action_btn).pack(anchor="w", pady=(0, 20))
-        self.content_frame = ctk.CTkFrame(self.frame_statistics, fg_color="transparent"); self.content_frame.pack(fill="both", expand=True)
+        self.content_frame = ctk.CTkFrame(self.frame_statistics, fg_color=CARD_BG, corner_radius=15) 
+        self.content_frame.pack(fill="both", expand=True, padx=20, pady=20)
         self.tree_stat = ttk.Treeview(self.content_frame, columns=('loai', 'so_luong'), show='headings'); self.tree_stat.heading('loai', text='Xếp loại'); self.tree_stat.heading('so_luong', text='Số sinh viên'); self.tree_stat.pack(side="left", fill="y", padx=(0, 25))
         self.chart_frame = ctk.CTkFrame(self.content_frame, fg_color=CARD_BG, corner_radius=15); self.chart_frame.pack(side="left", fill="both", expand=True)
 
@@ -134,7 +135,8 @@ class ASWindow:
         if len(self.chart_frame.winfo_children()) > 0: self.load_data()
 
     def apply_treeview_style(self, mode):
-        style = ttk.Style()
+        # 💡 SỬA LỖI TẠI ĐÂY: Truyền self.window vào bộ Style
+        style = ttk.Style(self.window) 
         style.theme_use("clam")
         if mode == "Dark":
             style.configure("Treeview", background="#1C1C1E", foreground="white", fieldbackground="#1C1C1E", rowheight=40, borderwidth=0, font=("Segoe UI", 12))
