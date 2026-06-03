@@ -4,7 +4,6 @@ from datetime import datetime
 import hashlib
 import binascii
 
-# VÁ LỖ HỔNG BẢO MẬT HASHING: Băm mật khẩu 100,000 lần kết hợp Salt (là Email)
 def hash_pwd(password: str, salt: str) -> str:
     dk = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt.encode('utf-8'), 100000)
     return binascii.hexlify(dk).decode('utf-8')
@@ -17,7 +16,6 @@ class MainController:
         db = SessionLocal()
         try:
             user = db.query(User).filter(User.email == email).first()
-            # Kiểm tra Hash hợp lệ
             if not user or user.password != hash_pwd(password, email):
                 return False, "Email hoặc mật khẩu không chính xác", ""
             
@@ -60,7 +58,6 @@ class StudentController:
         try:
             student_id = self.main_ctrl.current_user.user_id
             
-            # VÁ LỖ HỔNG RACE CONDITION: Bắt SQL khóa Row bằng with_for_update()
             course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id).with_for_update().first()
             if not course_class: return False, "Lớp học phần không tồn tại."
 
@@ -247,7 +244,6 @@ class LecturerController:
             course_class = db.query(CourseClass).filter(CourseClass.class_id == class_id, CourseClass.lecturer_id == self.main_ctrl.current_user.user_id).first()
             if not course_class: return False, "Lỗi: Bạn không phụ trách lớp này!"
             
-            # Lấy thông tin Tín chỉ của Môn học này
             course_obj = db.query(Course).filter(Course.course_id == course_class.course_id).first()
             c_cred = course_obj.credits if course_obj else 3 
             
@@ -255,7 +251,6 @@ class LecturerController:
             count = 0
             
             for e in enrollments:
-                # 1. Chặn lỗi bảo vệ: Bắt buộc phải tính điểm tổng trước
                 he4 = getattr(e, 'diem_he_4', getattr(e, 'he4', None))
                 if he4 is None:
                     return False, "⚠️ Lỗi: Vui lòng bấm '1. Tính điểm tổng' trước khi khóa sổ!"
@@ -263,33 +258,26 @@ class LecturerController:
                 if not getattr(e, 'is_locked', False): 
                     e.is_locked = True
                     
-                    # 2. Xét điểm chữ
                     letter = "A" if he4 == 4.0 else ("B" if he4 == 3.0 else ("C" if he4 == 2.0 else ("D" if he4 == 1.0 else "F")))
                     
-                    # 3. Lưu lịch sử môn học
                     passed_record = db.query(CompletedCourse).filter_by(student_id=e.student_id, course_id=course_class.course_id).first()
                     if not passed_record:
                         db.add(CompletedCourse(student_id=e.student_id, course_id=course_class.course_id, grade_letter=letter))
                     else:
                         passed_record.grade_letter = letter
                     
-                    # 4. THUẬT TOÁN CỘNG DỒN GPA & TÍN CHỈ (INCREMENTAL UPDATE)
                     student = db.query(User).filter(User.user_id == e.student_id).first()
                     if student:
                         old_gpa = getattr(student, 'gpa', 0.0) or 0.0
-                        old_creds = getattr(student, 'credits', 0) or 0 # Đóng vai trò là mẫu số tính GPA
+                        old_creds = getattr(student, 'credits', 0) or 0 
                         
-                        # Phục hồi tổng điểm lịch sử
                         current_total_points = old_gpa * old_creds
                         
-                        # Tính GPA mới (Môn F vẫn bị cộng vào mẫu số để kéo GPA xuống)
                         new_total_creds_for_gpa = old_creds + c_cred
                         new_gpa = (current_total_points + (he4 * c_cred)) / new_total_creds_for_gpa if new_total_creds_for_gpa > 0 else 0.0
                         
-                        # Cập nhật GPA
                         student.gpa = round(new_gpa, 2)
                         
-                        # Tín chỉ tích lũy (Earned Credits) chỉ cộng khi KHÔNG bị F
                         if he4 > 0.0:
                             student.credits = old_creds + c_cred
                             
@@ -379,6 +367,7 @@ class LecturerController:
             return res
         finally:
             db.close()
+
 class AcademicStaffController:
     def __init__(self, main_controller: MainController):
         self.main_ctrl = main_controller
@@ -442,15 +431,12 @@ class AcademicStaffController:
     def get_all_users(self) -> list:
         db = SessionLocal()
         try:
-            # Sắp xếp ID từ A-Z
             users = db.query(User).order_by(User.user_id.asc()).all()
-            # Bổ sung thêm trường "gpa": u.gpa
             return [{"uid": u.user_id, "name": u.name, "email": u.email, "role": u.role, "gpa": u.gpa} for u in users]
         finally:
             db.close()
 
     def create_user(self, uid, name, email, pwd, role) -> tuple[bool, str]:
-        # VÁ RÀNG BUỘC: Mật khẩu chính xác 8 ký tự
         if len(pwd) != 8:
             return False, "Mật khẩu phải có đúng 8 ký tự!"
             
@@ -466,7 +452,6 @@ class AcademicStaffController:
             db.close()
 
     def update_user(self, uid, name, email, pwd, role) -> tuple[bool, str]:
-        # VÁ RÀNG BUỘC: Nếu có sửa pass thì pass mới cũng phải đúng 8 ký tự
         if pwd != "******" and len(pwd) != 8:
             return False, "Mật khẩu phải có đúng 8 ký tự!"
             
@@ -485,11 +470,9 @@ class AcademicStaffController:
         finally:
             db.close()
 
-    # TÍNH NĂNG MỚI: Lấy danh sách Học phần cho Bảng hiển thị
     def get_all_courses(self) -> list:
         db = SessionLocal()
         try:
-            # Gắn thêm .order_by() để danh sách Môn học cũng được xếp đẹp mắt theo Mã học phần
             courses = db.query(Course).order_by(Course.course_id.asc()).all()
             res = []
             for c in courses:
@@ -503,14 +486,11 @@ class AcademicStaffController:
     def create_course(self, course_id: str, course_name: str, credits: int, prerequisite_id: str = None) -> tuple[bool, str]:
         db = SessionLocal()
         try:
-            # Kiểm tra xem mã học phần đã tồn tại chưa
             if db.query(Course).filter(Course.course_id == course_id).first():
                 return False, "Lỗi: Mã học phần này đã tồn tại trên hệ thống!"
             
-            # Xử lý môn tiên quyết (Nếu để trống thì lưu là None)
             prereq = prerequisite_id.strip() if prerequisite_id and prerequisite_id.strip() != "" else None
             
-            # Nếu có nhập môn tiên quyết, phải kiểm tra xem môn đó có tồn tại ko
             if prereq and not db.query(Course).filter(Course.course_id == prereq).first():
                 return False, f"Lỗi: Môn tiên quyết '{prereq}' không tồn tại!"
             
@@ -532,20 +512,16 @@ class AcademicStaffController:
     def create_course_class(self, class_id: str, course_id: str, lecturer_id: str, max_capacity: int) -> tuple[bool, str]:
         db = SessionLocal()
         try:
-            # 1. Kiểm tra xem Mã Lớp đã tồn tại chưa
             if db.query(CourseClass).filter(CourseClass.class_id == class_id).first():
                 return False, f"Lỗi: Mã lớp '{class_id}' đã tồn tại!"
             
-            # 2. Kiểm tra xem Môn học có tồn tại không
             if not db.query(Course).filter(Course.course_id == course_id).first():
                 return False, f"Lỗi: Không tìm thấy học phần '{course_id}' trong CSDL!"
             
-            # 3. Kiểm tra xem Giảng viên có tồn tại và đúng Role không
             lecturer = db.query(User).filter(User.user_id == lecturer_id, User.role == 'Lecturer').first()
             if not lecturer:
                 return False, f"Lỗi: Không tìm thấy giảng viên có mã '{lecturer_id}'!"
 
-            # 4. Thêm Lớp mới
             new_class = CourseClass(
                 class_id=class_id.strip(),
                 course_id=course_id.strip(),
@@ -567,7 +543,6 @@ class AcademicStaffController:
             course = db.query(Course).filter(Course.course_id == course_id).first()
             if not course: return False, "Lỗi: Không tìm thấy học phần!"
             
-            # CSDL sẽ tự động kích hoạt Cascade Delete dọn dẹp các bảng phụ
             db.delete(course)
             db.commit()
             return True, f"Đã xóa vĩnh viễn học phần '{course_id}' và toàn bộ dữ liệu liên quan!"
