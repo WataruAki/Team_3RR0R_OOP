@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+hms_database.db
+.vscode/

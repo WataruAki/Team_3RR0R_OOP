@@ -46,7 +46,9 @@ class LoginWindow:
         
         if success:
             self.role = role
-            # Dùng quit() thay vì destroy() để vòng lặp kết thúc an toàn, không văng lỗi Terminal
+            # 💡 SỬA LỖI TẠI ĐÂY: Dùng withdraw() để ẨN cửa sổ thay vì phá hủy nó. 
+            # Giúp animation của CustomTkinter chạy ngầm an toàn mà không văng lỗi đỏ.
+            self.window.withdraw() 
             self.window.quit() 
         else:
             self.lbl_error.configure(text="Email hoặc Mật khẩu không chính xác")
@@ -55,9 +57,9 @@ class LoginWindow:
 if __name__ == "__main__":
     login_app = LoginWindow()
     
-    # Chỉ mở giao diện chính khi cửa sổ Login đã đóng an toàn
+    # Chỉ mở giao diện chính khi cửa sổ Login đã đóng
     if login_app.role:
-        login_app.window.destroy() 
+        # 💡 XÓA BỎ lệnh destroy() ở đây
         if login_app.role == 'Staff': 
             ASWindow(login_app.main_ctrl)
         elif login_app.role == 'Lecturer': 

@@ -118,7 +118,8 @@ class StudentWindow:
         self.btn_theme.configure(text="🌙 Dark Mode" if new_mode=="Light" else "☀️ Light Mode")
 
     def apply_treeview_style(self, mode):
-        style = ttk.Style()
+        # 💡 SỬA LỖI TẠI ĐÂY: Truyền explicitly self.window vào bộ Style để nó không bị nhầm lẫn
+        style = ttk.Style(self.window) 
         style.theme_use("clam")
         if mode == "Dark":
             style.configure("Treeview", background="#1C1C1E", foreground="white", fieldbackground="#1C1C1E", rowheight=40, borderwidth=0, font=("Segoe UI", 12))
@@ -136,7 +137,6 @@ class StudentWindow:
         info = self.student_ctr.get_dashboard_info()
         if info and "profile" in info:
             p = info["profile"]
-            # 💡 Sửa chữ TC thành "TC Tích luỹ" cho rõ ràng
             self.lbl_profile.configure(text=f"🎓 Tên: {p['name']}   |   🆔 UID: {p['uid']}   |   📈 GPA: {p['gpa']}   |   📚 TC Tích luỹ: {p['credits']}")
             if info["warning"]["is_warned"]: self.lbl_warning.configure(text=f"⚠️ {info['warning']['message']}", text_color="#EF4444")
             else: self.lbl_warning.configure(text=f"✅ {info['warning']['message']}", text_color="#10B981")
@@ -156,7 +156,6 @@ class StudentWindow:
         self.hide_all(); self.frame_grades.pack(fill="both", expand=True)
         for row in self.tree_gr.get_children(): self.tree_gr.delete(row)
         for g in self.student_ctr.get_detailed_grades(): 
-            # 💡 SỬA LỖI TẠI ĐÂY: Truyền đủ 7 tham số, thêm g['chu'] vào cuối
             self.tree_gr.insert('', 'end', values=(g['class_id'], g['cc'], g['gk'], g['ck'], g['tong'], g['he4'], g['chu']))
             
         info = self.student_ctr.get_dashboard_info()
