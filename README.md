@@ -69,7 +69,7 @@ python main.py
 # Bước 4: Chạy Ứng dụng chính
 python ViewBCSE.py
 
-## 🔑 5. Tài khoản mẫu 
+## 5. Tài khoản mẫu 
 Sau khi chạy lệnh python main.py thành công, bạn có thể đăng nhập bằng các tài khoản dưới đây ( Mật khẩu chung cho tất cả là: **12345678**):
 
 | Vai trò (Role) | Email Đăng nhập | Ghi chú |
