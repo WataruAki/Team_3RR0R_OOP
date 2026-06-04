@@ -429,7 +429,7 @@ class AcademicStaffController:
         db = SessionLocal()
         try:
             students = db.query(User).filter(User.role == 'Student').all()
-            eligible_list = [{"uid": s.user_id, "name": s.name, "score": (s.gpa * 0.8) + (s.rls * 0.2 / 4)} for s in students if s.credits >= 18 and s.rls > 80]
+            eligible_list = [{"uid": s.user_id, "name": s.name, "score": (s.gpa * 0.8) + (s.rls * 0.2 / 25)} for s in students if s.credits >= 18 and s.rls > 80]
             return sorted(eligible_list, key=lambda x: x['score'], reverse=True)[:slots]
         finally:
             db.close()
